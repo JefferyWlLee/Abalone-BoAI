@@ -29,6 +29,7 @@ from enums import Direction, Player, Space, InitialPosition
 from game import Game, IllegalMoveException
 from utils import line_from_to
 from human_player import HumanPlayer
+from random_player import RandomPlayer
 
 
 def _get_winner(score: tuple[int, int]) -> Union[Player, None]:
@@ -144,8 +145,23 @@ if __name__ == '__main__':  # pragma: no cover
     else:
         game = InitialPosition.BELGIAN_DAISY
 
-    black = sys.argv[1].rsplit('.', 1)
-    black = getattr(importlib.import_module(black[0]), black[1])
-    white = sys.argv[2].rsplit('.', 1)
-    white = getattr(importlib.import_module(white[0]), white[1])
-    list(run_game(black(), white(), initial_position=game))
+    versus_mode = inquirer.prompt([
+        inquirer.List('versus_mode',
+                      message='What type of game do you want?',
+                      choices=['Player vs Player', 'Player vs Computer', 'Computer vs Computer']
+                      )
+    ])['versus_mode']
+
+    if versus_mode == 'Player vs Player':
+        black = HumanPlayer()
+        white = HumanPlayer()
+    elif versus_mode == 'Player vs Computer':
+        black = HumanPlayer()
+        white = RandomPlayer()
+    else:
+        black = RandomPlayer()
+        white = RandomPlayer()
+
+    # Run the game with these player instances and an initial game position
+    list(run_game(black, white, initial_position=game))
+
