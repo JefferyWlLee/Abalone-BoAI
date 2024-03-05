@@ -26,6 +26,7 @@ from abalone.abstract_player import AbstractPlayer
 from abalone.enums import Direction, Player, Space
 from abalone.game import Game, IllegalMoveException
 from abalone.utils import line_from_to
+import time, threading
 
 
 def _get_winner(score: Tuple[int, int]) -> Union[Player, None]:
@@ -54,6 +55,18 @@ def _format_move(turn: Player, move: Tuple[Union[Space, Tuple[Space, Space]], Di
     marbles = map(lambda space: space.name, marbles)
     return f'{moves + 1}: {turn.name} moves {", ".join(marbles)} in direction {move[1].name}'
 
+def end_game(game):
+    """
+    create a end game function. Callback after certain period of time
+    """
+
+    score = game.get_score()
+    winner = _get_winner(score)
+    if winner is not None:
+        print(f'Time is up. {winner.name} won!')
+    else:
+        print(f'Time is up. BLACK {score[0]} - WHITE {score[1]} result is even')
+
 
 def run_game(black: AbstractPlayer, white: AbstractPlayer, **kwargs) \
         -> Generator[Tuple[Game, List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]], None, None]:
@@ -68,9 +81,16 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, **kwargs) \
         A tuple of the current `abalone.game.Game` instance and the move history at the start of the game and after\
         every legal turn.
     """
+
+
     game = Game()
     moves_history = []
     yield game, moves_history
+
+    total_time = 5  # for testing 5 second
+    print(f"The game will end in {total_time} seconds")
+    gameOverallClock = threading.Timer(total_time, end_game, [game])
+    gameOverallClock.start()
 
     while True:
         score = game.get_score()
