@@ -22,13 +22,13 @@
 from traceback import format_exc
 from typing import Generator, List, Tuple, Union
 
-from abalone.abstract_player import AbstractPlayer
-from abalone.enums import Direction, Player, Space
-from abalone.game import Game, IllegalMoveException
-from abalone.utils import line_from_to
+from abstract_player import AbstractPlayer
+from enums import Direction, Player, Space
+from game import Game, IllegalMoveException
+from utils import line_from_to
 
 
-def _get_winner(score: Tuple[int, int]) -> Union[Player, None]:
+def _get_winner(score: tuple[int, int]) -> Union[Player, None]:
     """Returns the winner of the game based on the current score.
 
     Args:

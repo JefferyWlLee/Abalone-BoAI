@@ -24,8 +24,8 @@ from typing import Generator, List, Tuple, Union
 import colorama
 from colorama import Style
 
-from abalone.enums import Direction, InitialPosition, Marble, Player, Space
-from abalone.utils import line_from_to, line_to_edge, neighbor
+from enums import Direction, InitialPosition, Marble, Player, Space
+from utils import line_from_to, line_to_edge, neighbor
 
 colorama.init(autoreset=True)
 
@@ -69,7 +69,7 @@ def _marble_of_player(player: Player) -> Marble:
 class Game:
     """Represents the mutable state of an Abalone game."""
 
-    def __init__(self, initial_position: InitialPosition = InitialPosition.DEFAULT, first_turn: Player = Player.BLACK):
+    def __init__(self, initial_position: InitialPosition = InitialPosition.GERMAN_DAISY, first_turn: Player = Player.BLACK):
         self.board = deepcopy(initial_position.value)
         self.turn = first_turn
 
