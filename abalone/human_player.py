@@ -22,9 +22,9 @@ from typing import List, Tuple, Union
 
 import inquirer
 
-from abalone.abstract_player import AbstractPlayer
-from abalone.enums import Direction, Space
-from abalone.game import Game
+from abstract_player import AbstractPlayer
+from enums import Direction, Space
+from game import Game
 
 
 def _prompt_move_type() -> str:

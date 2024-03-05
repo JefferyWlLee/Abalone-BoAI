@@ -22,10 +22,10 @@
 from traceback import format_exc
 from typing import Generator, List, Tuple, Union
 
-from abalone.abstract_player import AbstractPlayer
-from abalone.enums import Direction, Player, Space
-from abalone.game import Game, IllegalMoveException
-from abalone.utils import line_from_to
+from abstract_player import AbstractPlayer
+from enums import Direction, Player, Space
+from game import Game, IllegalMoveException
+from utils import line_from_to
 
 
 def _get_winner(score: Tuple[int, int]) -> Union[Player, None]:
@@ -42,6 +42,93 @@ def _get_winner(score: Tuple[int, int]) -> Union[Player, None]:
     return None
 
 
+def abalone_instructions():
+    print("""
+    ABALONE INSTRUCTIONS:
+    
+        OBJECTIVE
+           The objective of Abalone is to push six of your opponent's marbles off the board.
+        
+        SETUP
+           The game is played on a hexagonal board consisting of 61 circular spaces.
+           Each player has 14 marbles of their color placed in a predetermined pattern at opposite ends of the board.
+           Players can choose either black or white marbles.
+        
+        MOVEMENT
+           Players take turns moving their marbles.
+           A player can move one, two, or three adjacent marbles in a straight line in any direction (forward, backward, or sideways).
+           A move can be made by pushing your own marbles or opponent's marbles.
+           A single marble can push one or two marbles of the opponent's color.
+           The direction of the push must be the same as the direction of the move.
+           Diagonal movement is not allowed.
+        
+        WINNING
+           The game is won by the player who first successfully pushes six of their opponent's marbles off the board.
+           If a player has fewer than six marbles remaining, they lose the game.
+        
+        VARIATIONS
+           Abalone can be played with different board sizes, variations in starting positions, and alternative rulesets.
+    """)
+
+    input("Enter any key to return to the main menu.")
+    if input:
+        abalone_menu()
+
+
+def about_abalone():
+    print("?")
+
+    input("Enter any key to return to the main menu.")
+    if input:
+        abalone_menu()
+
+
+def abalone_menu():
+    print("""
+           _           _                  
+      __ _| |__   __ _| | ___  _ __   ___ 
+     / _` | '_ \ / _` | |/ _ \| '_ \ / _ \\
+    | (_| | |_) | (_| | | (_) | | | |  __/
+     \__,_|_.__/ \__,_|_|\___/|_| |_|\___|
+    
+    Welcome to Abalone!
+        
+        1. Start Game
+        2. Instructions
+        3. About
+        4. Exit
+    """)
+
+    option = None
+
+    while option not in [1, 2, 3, 4]:
+        try:
+            option = int(input("Enter choice: "))
+            print()
+            if option == 1:
+                # Run a game from the command line with default configuration.
+                import importlib
+                import sys
+
+                if len(sys.argv) != 3:
+                    sys.exit(1)
+                black = sys.argv[1].rsplit('.', 1)
+                black = getattr(importlib.import_module(black[0]), black[1])
+                white = sys.argv[2].rsplit('.', 1)
+                white = getattr(importlib.import_module(white[0]), white[1])
+                list(run_game(black(), white()))
+            elif option == 2:
+                abalone_instructions()
+            elif option == 3:
+                about_abalone()
+            elif option == 4:
+                exit()
+            else:
+                raise ValueError
+        except ValueError:
+            print("Invalid input. Please enter a valid option.\n")
+
+
 def _format_move(turn: Player, move: Tuple[Union[Space, Tuple[Space, Space]], Direction], moves: int) -> str:
     """Formats a player's move as a string with a single line.
 
@@ -53,6 +140,69 @@ def _format_move(turn: Player, move: Tuple[Union[Space, Tuple[Space, Space]], Di
     marbles = [move[0]] if isinstance(move[0], Space) else line_from_to(*move[0])[0]
     marbles = map(lambda space: space.name, marbles)
     return f'{moves + 1}: {turn.name} moves {", ".join(marbles)} in direction {move[1].name}'
+
+
+def print_move_history(moves_history):
+    black = True
+    for index, move in enumerate(moves_history, start=1):
+        if black:
+            colour = "BLACK"
+        else:
+            colour = "WHITE"
+
+        # print(f"MOVE {index} | {colour} | {move[0].name} | DIRECTION: {move[1].name.replace('_', ' ')}")
+
+        if isinstance(move[0], tuple):  # Check if move involves one or two spaces
+            if len(move[0]) == 2:  # If it involves two spaces
+                start_position = move[0][0].name  # Accessing the name of the first element in the tuple
+                end_position = move[0][1].name  # Accessing the name of the second element in the tuple
+                direction = move[1].value.replace("_", " ").title()
+                print(f"Move {index}: Marbles from {start_position} to {end_position}, Direction: {direction}")
+            else:  # If it involves only one space
+                position = move[0].name
+                direction = move[1].value.replace("_", " ").title()
+                print(f"Move {index}: Marble at {position}, Direction: {direction}")
+        else:  # If it's just a single space
+            position = move[0].name
+            direction = move[1].value.replace("_", " ").title()
+            print(f"Move {index}: Marble at {position}, Direction: {direction}")
+
+        black = not black
+
+
+def write_move_history_to_file(moves_history, filename):
+    black = True
+    with open(filename, 'w') as file:
+        file.write("Move History:\n\n")
+        for index, move in enumerate(moves_history, start=1):
+            if black:
+                colour = "BLACK"
+            else:
+                colour = "WHITE"
+
+            file.write(f"MOVE {index}:\n")
+            file.write(f"\tColour: {colour}\n")
+
+            if isinstance(move[0], tuple):  # Check if move involves one, two, or three spaces
+                if len(move[0]) == 2:  # If it involves two spaces
+                    start_position = move[0][0].name  # Accessing the name of the first element in the tuple
+                    end_position = move[0][1].name  # Accessing the name of the second element in the tuple
+                    file.write(f"\tMarbles from {start_position} to {end_position}\n")
+                elif len(move[0]) == 3:  # If it involves three spaces
+                    marble_positions = [space.name for space in
+                                        move[0]]  # Accessing the names of all spaces in the tuple
+                    file.write("\tMarbles from {} to {} to {}\n".format(*marble_positions))
+                else:  # If it involves only one space
+                    position = move[0].name
+                    file.write(f"\tMarble at {position}\n")
+            else:  # If it's just a single space
+                position = move[0].name
+                file.write(f"\tMarble at {position}\n")
+
+            file.write(f"\tDirection: {move[1].value.replace('_', ' ').title()}\n")
+            file.write("\n")
+
+            black = not black
 
 
 def run_game(black: AbstractPlayer, white: AbstractPlayer, **kwargs) \
@@ -99,16 +249,21 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, **kwargs) \
             print(format_exc())
             break
 
+    # print_move_history(moves_history)
+    write_move_history_to_file(moves_history, "move_history.txt")
+
 
 if __name__ == '__main__':  # pragma: no cover
-    # Run a game from the command line with default configuration.
-    import importlib
-    import sys
+    # # Run a game from the command line with default configuration.
+    # import importlib
+    # import sys
+    #
+    # if len(sys.argv) != 3:
+    #     sys.exit(1)
+    # black = sys.argv[1].rsplit('.', 1)
+    # black = getattr(importlib.import_module(black[0]), black[1])
+    # white = sys.argv[2].rsplit('.', 1)
+    # white = getattr(importlib.import_module(white[0]), white[1])
+    # list(run_game(black(), white()))
 
-    if len(sys.argv) != 3:
-        sys.exit(1)
-    black = sys.argv[1].rsplit('.', 1)
-    black = getattr(importlib.import_module(black[0]), black[1])
-    white = sys.argv[2].rsplit('.', 1)
-    white = getattr(importlib.import_module(white[0]), white[1])
-    list(run_game(black(), white()))
+    abalone_menu()
