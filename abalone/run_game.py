@@ -21,6 +21,7 @@
 
 from traceback import format_exc
 from typing import Generator, List, Tuple, Union
+import time, threading, os
 
 import inquirer
 
@@ -58,6 +59,17 @@ def _format_move(turn: Player, move: Tuple[Union[Space, Tuple[Space, Space]], Di
     marbles = map(lambda space: space.name, marbles)
     return f'{moves + 1}: {turn.name} moves {", ".join(marbles)} in direction {move[1].name}'
 
+def end_game(game):
+    """
+    create a end game function. Callback after certain period of time
+    """
+    score = game.get_score()
+    winner = _get_winner(score)
+    if winner is not None:
+        print(f'Time is up. {winner.name} won!')
+    else:
+        print(f'Time is up. BLACK {score[0]} - WHITE {score[1]} result is even')
+    os._exit(1)
 
 def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, **kwargs) \
         -> Generator[Tuple[Game, List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]], None, None]:
@@ -77,6 +89,12 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, **k
     moves_history = []
     yield game, moves_history
 
+    # time feature
+    total_time = 8  # for testing, implement this on startup )
+    print(f"The game will end in {total_time} seconds")
+    gameMasterClock = threading.Timer(total_time, end_game, [game])
+    gameMasterClock.start()
+
     while True:
         score = game.get_score()
         score_str = f'BLACK {score[0]} - WHITE {score[1]}'
@@ -89,6 +107,14 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, **k
 
         try:
             move = black.turn(game, moves_history) if game.turn is Player.BLACK else white.turn(game, moves_history)
+
+            # add for reset the timer
+            if not move is None:
+                gameMasterClock.cancel()
+                print(f"Clock reset The game will end in {total_time} seconds")
+                gameMasterClock = threading.Timer(total_time, end_game, [game])
+                gameMasterClock.start()
+
             if move == 'undo':
                 if len(moves_history) == 0:
                     print('Cannot undo the first move\n')
