@@ -22,10 +22,13 @@
 from traceback import format_exc
 from typing import Generator, List, Tuple, Union
 
+import inquirer
+
 from abstract_player import AbstractPlayer
-from enums import Direction, Player, Space
+from enums import Direction, Player, Space, InitialPosition
 from game import Game, IllegalMoveException
 from utils import line_from_to
+from human_player import HumanPlayer
 
 
 def _get_winner(score: tuple[int, int]) -> Union[Player, None]:
@@ -55,20 +58,21 @@ def _format_move(turn: Player, move: Tuple[Union[Space, Tuple[Space, Space]], Di
     return f'{moves + 1}: {turn.name} moves {", ".join(marbles)} in direction {move[1].name}'
 
 
-def run_game(black: AbstractPlayer, white: AbstractPlayer, **kwargs) \
+def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, **kwargs) \
         -> Generator[Tuple[Game, List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]], None, None]:
     """Runs a game instance and prints the progress / current state at every turn.
 
     Args:
         black: An `abalone.abstract_player.AbstractPlayer`
         white: An `abalone.abstract_player.AbstractPlayer`
+        initial_position: The initial position of the game. One of `abalone.enums.InitialPosition`
         **kwargs: These arguments are passed to `abalone.game.Game.__init__`
 
     Yields:
         A tuple of the current `abalone.game.Game` instance and the move history at the start of the game and after\
         every legal turn.
     """
-    game = Game()
+    game = Game(initial_position=initial_position)
     moves_history = []
     yield game, moves_history
 
@@ -123,10 +127,25 @@ if __name__ == '__main__':  # pragma: no cover
     import importlib
     import sys
 
-    if len(sys.argv) != 3:
-        sys.exit(1)
+    # if len(sys.argv) != 3:
+    #     sys.exit(1)
+
+    game_mode = inquirer.prompt([
+        inquirer.List('game_mode',
+                      message='What type layout do you want?',
+                      choices=['Standard', 'German Daisy', 'Belgian Daisy']
+                      )
+    ])['game_mode']
+
+    if game_mode == 'Standard':
+        game = InitialPosition.DEFAULT
+    elif game_mode == 'German Daisy':
+        game = InitialPosition.GERMAN_DAISY
+    else:
+        game = InitialPosition.BELGIAN_DAISY
+
     black = sys.argv[1].rsplit('.', 1)
     black = getattr(importlib.import_module(black[0]), black[1])
     white = sys.argv[2].rsplit('.', 1)
     white = getattr(importlib.import_module(white[0]), white[1])
-    list(run_game(black(), white()))
+    list(run_game(black(), white(), initial_position=game))

@@ -5,3 +5,8 @@ htmlcov
 abalone_boai.egg-info/
 build/
 dist/
+/.idea/workspace.xml
+/.idea/vcs.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/Abalone-BoAI.iml
