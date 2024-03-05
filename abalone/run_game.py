@@ -84,6 +84,24 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, **kwargs) \
 
         try:
             move = black.turn(game, moves_history) if game.turn is Player.BLACK else white.turn(game, moves_history)
+            if move == 'undo':
+                if len(moves_history) == 0:
+                    print('Cannot undo the first move\n')
+                    continue
+                game.undo()
+                moves_history.pop()
+                print('Undone last move\n')
+                continue
+            if move == 'undo self':
+                if len(moves_history) < 2:
+                    print('Cannot undo the first move\n')
+                    continue
+                game.undo()
+                game.undo()
+                moves_history.pop()
+                moves_history.pop()
+                print('Undone last two moves\n')
+                continue
             print(_format_move(game.turn, move, len(moves_history)), end='\n\n')
 
             game.move(*move)

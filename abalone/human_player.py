@@ -22,6 +22,7 @@ from typing import List, Tuple, Union
 
 import inquirer
 
+from enums import Space, Direction
 from abstract_player import AbstractPlayer
 from enums import Direction, Space
 from game import Game
@@ -31,13 +32,14 @@ def _prompt_move_type() -> str:
     return inquirer.prompt([
         inquirer.List('move_type',
                       message='What type of move do you want to perform?',
-                      choices=['In-line', 'Broadside']
+                      choices=['In-line', 'Broadside', 'undo', 'undo self']
                       )
     ])['move_type']
 
 
 def _prompt_marble1(move_type: str, legal_moves: List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]) -> Space:
     marble1_candidates = set()
+
     if move_type == 'In-line':
         message = 'Select the trailing marble'
         for legal_move in legal_moves:
@@ -102,9 +104,14 @@ def _prompt_direction(marbles: Union[Space, Tuple[Space, Space]],
 class HumanPlayer(AbstractPlayer):
 
     def turn(self, game: Game, moves_history: List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]) \
-            -> Tuple[Union[Space, Tuple[Space, Space]], Direction]:
+            -> str | tuple[Space | tuple[Space, Space], Direction]:
         legal_moves = list(game.generate_legal_moves())
         move_type = _prompt_move_type()
+        if move_type == 'undo':
+            return 'undo'
+
+        if move_type == 'undo self':
+            return 'undo self'
         marble1 = _prompt_marble1(move_type, legal_moves)
 
         if move_type == 'In-line':
