@@ -26,7 +26,7 @@ from abalone.abstract_player import AbstractPlayer
 from abalone.enums import Direction, Player, Space
 from abalone.game import Game, IllegalMoveException
 from abalone.utils import line_from_to
-import time, threading
+import time, threading, os
 
 
 def _get_winner(score: Tuple[int, int]) -> Union[Player, None]:
@@ -59,14 +59,19 @@ def end_game(game):
     """
     create a end game function. Callback after certain period of time
     """
-
     score = game.get_score()
     winner = _get_winner(score)
     if winner is not None:
         print(f'Time is up. {winner.name} won!')
     else:
         print(f'Time is up. BLACK {score[0]} - WHITE {score[1]} result is even')
+    os._exit(1)
 
+
+# def turn_timer(game, moves_history):
+#     print("times up, switch player")
+#     game.switch_player()
+#     # yield game, moves_history
 
 def run_game(black: AbstractPlayer, white: AbstractPlayer, **kwargs) \
         -> Generator[Tuple[Game, List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]], None, None]:
@@ -87,10 +92,10 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, **kwargs) \
     moves_history = []
     yield game, moves_history
 
-    total_time = 5  # for testing 5 second
+    total_time = 3  # for testing, implement this on startup )
     print(f"The game will end in {total_time} seconds")
-    gameOverallClock = threading.Timer(total_time, end_game, [game])
-    gameOverallClock.start()
+    gameMasterClock = threading.Timer(total_time, end_game, [game])
+    gameMasterClock.start()
 
     while True:
         score = game.get_score()
@@ -105,6 +110,13 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, **kwargs) \
         try:
             move = black.turn(game, moves_history) if game.turn is Player.BLACK else white.turn(game, moves_history)
             print(_format_move(game.turn, move, len(moves_history)), end='\n\n')
+
+            # add for reset the timer
+            if not move is None:
+                gameMasterClock.cancel()
+                print(f"Clock reset The game will end in {total_time} seconds")
+                gameMasterClock = threading.Timer(total_time, end_game, [game])
+                gameMasterClock.start()
 
             game.move(*move)
             game.switch_player()

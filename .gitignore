@@ -5,3 +5,10 @@ htmlcov
 abalone_boai.egg-info/
 build/
 dist/
+/.idea/.gitignore
+/.idea/Abalone-BoAI.iml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/vcs.xml
