@@ -147,80 +147,81 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
     c.start()
     #####
 
-    while True:
-        score = game.get_score()
-        score_str = f'BLACK {score[0]} - WHITE {score[1]}'
-        print(score_str, game, '', sep='\n')
+    with open("moves.txt", 'w') as file, open("black_moves.txt", 'w') as file2, open("white_moves.txt", 'w') as file3:
+        while True:
+            score = game.get_score()
+            score_str = f'BLACK {score[0]} - WHITE {score[1]}'
+            print(score_str, game, '', sep='\n')
 
-        winner = _get_winner(score)
-        if winner is not None:
-            print(f'{winner.name} won!')
-            break
-
-        try:
-            move = black.turn(game, moves_history) if game.turn is Player.BLACK else white.turn(game, moves_history)
-
-            write_move_history_to_files(game, move, moves_history, file, file2, file3, black_count, white_count)
-
-            if game.turn is Player.BLACK:
-                black_count += 1
-            else:
-                white_count += 1
-
-            # reset the timer
-            if not move == 'pause' and not move == 'resume':
-                controller_event.clear()
-                t.join()  # destroy the timer thread
-                controller_event.set()
-                # start another timer for opponent
-                t = threading.Thread(target=timer, args=[time_event, controller_event, MAX_TIME, game])
-                t.start()
-
-            if move == 'undo':
-                if len(moves_history) == 0:
-                    print('Cannot undo the first move\n')
-                    continue
-                game.undo()
-                moves_history.pop()
-                print('Undone last move\n')
-                continue
-            if move == 'undo self':
-                if len(moves_history) < 2:
-                    print('Cannot undo the first move\n')
-                    continue
-                game.undo()
-                game.undo()
-                moves_history.pop()
-                moves_history.pop()
-                print('Undone last two moves\n')
-                continue
-            if move == 'pause':
-                time_event.clear()
-                print("The game has been paused!\n")
-                continue
-            if move == 'resume':
-                time_event.set()
-                print("The game is resumed.\n")
-                continue
-
-            print(_format_move(game.turn, move, len(moves_history)), end='\n\n')
-
-            game.move(*move)
-            game.switch_player()
-            moves_history.append(move)
-            moves_made += 1
-            if moves_made >= moves_limit:
-                print(f"Moves limit reached. {moves_limit} moves have been made.")
-                end_game(game)
+            winner = _get_winner(score)
+            if winner is not None:
+                print(f'{winner.name} won!')
                 break
-            yield game, moves_history
-        except IllegalMoveException as ex:
-            print(f'{game.turn.name}\'s tried to perform an illegal move ({ex})\n')
-            break
-        except:
-            print(f'{game.turn.name}\'s move caused an exception\n')
-            print(format_exc())
-            break
+
+            try:
+                move = black.turn(game, moves_history) if game.turn is Player.BLACK else white.turn(game, moves_history)
+
+                write_move_history_to_files(game, move, moves_history, file, file2, file3, black_count, white_count)
+
+                if game.turn is Player.BLACK:
+                    black_count += 1
+                else:
+                    white_count += 1
+
+                # reset the timer
+                if not move == 'pause' and not move == 'resume':
+                    controller_event.clear()
+                    t.join()  # destroy the timer thread
+                    controller_event.set()
+                    # start another timer for opponent
+                    t = threading.Thread(target=timer, args=[time_event, controller_event, MAX_TIME, game])
+                    t.start()
+
+                if move == 'undo':
+                    if len(moves_history) == 0:
+                        print('Cannot undo the first move\n')
+                        continue
+                    game.undo()
+                    moves_history.pop()
+                    print('Undone last move\n')
+                    continue
+                if move == 'undo self':
+                    if len(moves_history) < 2:
+                        print('Cannot undo the first move\n')
+                        continue
+                    game.undo()
+                    game.undo()
+                    moves_history.pop()
+                    moves_history.pop()
+                    print('Undone last two moves\n')
+                    continue
+                if move == 'pause':
+                    time_event.clear()
+                    print("The game has been paused!\n")
+                    continue
+                if move == 'resume':
+                    time_event.set()
+                    print("The game is resumed.\n")
+                    continue
+
+                print(_format_move(game.turn, move, len(moves_history)), end='\n\n')
+
+                game.move(*move)
+                game.switch_player()
+                moves_history.append(move)
+                moves_made += 1
+                if moves_made >= moves_limit:
+                    print(f"Moves limit reached. {moves_limit} moves have been made.")
+                    end_game(game)
+                    break
+                yield game, moves_history
+            except IllegalMoveException as ex:
+                print(f'{game.turn.name}\'s tried to perform an illegal move ({ex})\n')
+                break
+            except:
+                print(f'{game.turn.name}\'s move caused an exception\n')
+                print(format_exc())
+                break
 
 
 if __name__ == '__main__':  # pragma: no cover
