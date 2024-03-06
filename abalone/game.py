@@ -69,8 +69,9 @@ def _marble_of_player(player: Player) -> Marble:
 class Game:
     """Represents the mutable state of an Abalone game."""
 
-    def __init__(self, initial_position: InitialPosition = InitialPosition.DEFAULT, first_turn: Player = Player.BLACK):
+    def __init__(self, initial_position: InitialPosition = InitialPosition.GERMAN_DAISY, first_turn: Player = Player.BLACK):
         self.board = deepcopy(initial_position.value)
+        self.previous_boards = []
         self.turn = first_turn
 
     def __str__(self) -> str:  # pragma: no cover
@@ -208,6 +209,7 @@ class Game:
         if own_marbles_num == len(line):
             raise IllegalMoveException('Own marbles must not be moved off the board')
 
+        self.previous_boards.append(deepcopy(self.board))
         # sumito
         if opp_marbles_num > 0:
             if opp_marbles_num >= own_marbles_num:
@@ -253,6 +255,7 @@ class Game:
             destination_space = neighbor(marble, direction)
             if destination_space is Space.OFF or self.get_marble(destination_space) is not Marble.BLANK:
                 raise IllegalMoveException('With a broadside move, marbles can only be moved to empty spaces')
+        self.previous_boards.append(deepcopy(self.board))
         for marble in marbles:
             self.set_marble(marble, Marble.BLANK)
             self.set_marble(neighbor(marble, direction), _marble_of_player(self.turn))
@@ -270,6 +273,7 @@ class Game:
         Raises:
             Exception: Invalid arguments
         """
+
         if isinstance(marbles, Space):
             self.move_inline(marbles, direction)
         elif isinstance(marbles, tuple) and isinstance(marbles[0], Space) and isinstance(marbles[1], Space):
@@ -312,6 +316,18 @@ class Game:
                 except IllegalMoveException:
                     continue
                 yield marbles, direction
+
+    def undo(self) -> None:
+        """Undoes the last move."""
+        self.board = self.previous_boards.pop()
+        self.switch_player()
+
+    def self_undo(self) -> None:
+        """Undoes the last move the current player made."""
+        self.board = self.previous_boards.pop()
+        self.switch_player()
+        self.board = self.previous_boards.pop()
+        self.switch_player()
 
 
 class IllegalMoveException(Exception):
