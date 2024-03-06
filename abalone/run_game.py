@@ -128,6 +128,8 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
 
     moves_limit = move_limit
     moves_made = 0
+    black_count = 0
+    white_count = 0
     game = Game(initial_position=initial_position)
     moves_history = []
     yield game, moves_history
@@ -158,7 +160,12 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
         try:
             move = black.turn(game, moves_history) if game.turn is Player.BLACK else white.turn(game, moves_history)
 
-            #HERE
+            write_move_history_to_files(game, move, moves_history, file, file2, file3, black_count, white_count)
+
+            if game.turn is Player.BLACK:
+                black_count += 1
+            else:
+                white_count += 1
 
             # reset the timer
             if not move == 'pause' and not move == 'resume':
