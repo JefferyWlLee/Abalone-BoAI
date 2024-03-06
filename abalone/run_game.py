@@ -142,18 +142,28 @@ def _format_move(turn: Player, move: Tuple[Union[Space, Tuple[Space, Space]], Di
     return f'{moves + 1}: {turn.name} moves {", ".join(marbles)} in direction {move[1].name}'
 
 
-def write_move_history_to_files(game, move, moves_history, file, file2, file3):
+# def write_move_history_to_files(game, move, moves_history, file, file2, file3):
+#     file.write(_format_move(game.turn, move, len(moves_history)))
+#     file.write('\n')
+#
+#     if game.turn is Player.BLACK:
+#         file2.write(_format_move(game.turn, move, len(moves_history)))
+#         file2.write('\n')
+#     else:
+#         file3.write(_format_move(game.turn, move, len(moves_history)))
+#         file3.write('\n')
+
+
+def write_move_history_to_files(game, move, moves_history, file, file2, file3, black_move_count, white_move_count):
     file.write(_format_move(game.turn, move, len(moves_history)))
     file.write('\n')
 
     if game.turn is Player.BLACK:
-        file2.write(_format_move(game.turn, move, len(moves_history)))
+        file2.write(_format_move(game.turn, move, black_move_count))
         file2.write('\n')
-        # black move count++
     else:
-        file3.write(_format_move(game.turn, move, len(moves_history)))
+        file3.write(_format_move(game.turn, move, white_move_count))
         file3.write('\n')
-        # white move count++
 
 
 def run_game(black: AbstractPlayer, white: AbstractPlayer, **kwargs) \
@@ -173,6 +183,9 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, **kwargs) \
     moves_history = []
     yield game, moves_history
 
+    black_count = 0
+    white_count = 0
+
     with open("moves.txt", 'w') as file, open("black_moves.txt", 'w') as file2, open("white_moves.txt", 'w') as file3:
         while True:
             score = game.get_score()
@@ -188,7 +201,12 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, **kwargs) \
                 move = black.turn(game, moves_history) if game.turn is Player.BLACK else white.turn(game, moves_history)
                 print(_format_move(game.turn, move, len(moves_history)), end='\n\n')
 
-                write_move_history_to_files(game, move, moves_history, file, file2, file3)
+                write_move_history_to_files(game, move, moves_history, file, file2, file3, black_count, white_count)
+
+                if game.turn is Player.BLACK:
+                    black_count += 1
+                else:
+                    white_count += 1
 
                 game.move(*move)
                 game.switch_player()
