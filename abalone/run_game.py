@@ -98,7 +98,7 @@ def timer(time_event, controller_event, max_time, game):
     print("clock stop completely...")
 
 
-def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, move_limit, **kwargs) \
+def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, move_limit, time_limit, **kwargs) \
         -> Generator[Tuple[Game, List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]], None, None]:
     """Runs a game instance and prints the progress / current state at every turn.
 
@@ -106,6 +106,7 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
         black: An `abalone.abstract_player.AbstractPlayer`
         white: An `abalone.abstract_player.AbstractPlayer`
         initial_position: The initial position of the game. One of `abalone.enums.InitialPosition`
+        move_limit: The maximum number of moves that can be made before the game ends
         **kwargs: These arguments are passed to `abalone.game.Game.__init__`
 
     Yields:
@@ -121,7 +122,7 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
 
     # time feature
     ###### testing block
-    MAX_TIME = 60
+    MAX_TIME =time_limit
     time_event = threading.Event()
     time_event.set()
     controller_event = threading.Event()
@@ -246,6 +247,17 @@ if __name__ == '__main__':  # pragma: no cover
             move_limit = int(input("Enter the move limit per player: "))
             if move_limit > 0:
                 move_limit = move_limit * 2
+                break
+            else:
+                print("Invalid input, please enter a positive number")
+        except:
+            print("Invalid input, please enter number")
+
+    while (True):
+        try:
+            time_limit = int(input("Enter the time limit per player in minutes: "))
+            if time_limit > 0:
+                time_limit = time_limit * 60
                 break
             else:
                 print("Invalid input, please enter a positive number")
