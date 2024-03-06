@@ -116,6 +116,7 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, **k
     # time feature
     ###### testing block
     MAX_TIME = 60
+    lock_selection=False
     time_event = threading.Event()
     time_event.set()
     controller_event = threading.Event()
@@ -137,7 +138,8 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, **k
             break
 
         try:
-            move = black.turn(game, moves_history) if game.turn is Player.BLACK else white.turn(game, moves_history)
+            move = black.turn(game, moves_history, lock_selection) if game.turn is Player.BLACK else \
+                white.turn(game, moves_history, lock_selection)
 
             # reset the timer
             if not move == 'pause' and not move == 'resume':
@@ -168,10 +170,12 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, **k
                 continue
             if move == 'pause':
                 time_event.clear()
+                lock_selection=True
                 print("The game has been paused!\n")
                 continue
             if move == 'resume':
                 time_event.set()
+                lock_selection=False
                 print("The game is resumed.\n")
                 continue
 

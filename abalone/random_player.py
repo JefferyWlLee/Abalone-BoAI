@@ -26,6 +26,6 @@ from game import Game
 
 
 class RandomPlayer(AbstractPlayer):
-    def turn(self, game: Game, moves_history: List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]) \
+    def turn(self, game: Game, moves_history: List[Tuple[Union[Space, Tuple[Space, Space]], Direction]], selection_lock: bool) \
             -> Tuple[Union[Space, Tuple[Space, Space]], Direction]:
         return choice(list(game.generate_legal_moves()))
