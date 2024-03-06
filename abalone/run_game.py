@@ -71,6 +71,30 @@ def end_game(game):
         print(f'Time is up. BLACK {score[0]} - WHITE {score[1]} result is even')
     os._exit(1)
 
+def timer(time_event, controller_event, max_time, game):
+    """
+    countdown clock, pause
+    """
+    countDown = max_time
+    while controller_event.is_set():
+        if countDown <= 1:
+            # time-up and end game
+            score = game.get_score()
+            winner = _get_winner(score)
+            if winner is not None:
+                print(f'Time is up. {winner.name} won!')
+            else:
+                print(f'Time is up. BLACK {score[0]} - WHITE {score[1]} result is tie')
+            os._exit(1)
+
+        #countdown every second
+        time_event.wait() # control pause or resume
+        sys.stdout.write(f"\r[Time left: {int(countDown/60)}:{countDown % 60:02d}]")
+        sys.stdout.flush()
+        countDown -= 1
+        time.sleep(1)
+    print("clock stop completely...")
+
 def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, **kwargs) \
         -> Generator[Tuple[Game, List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]], None, None]:
     """Runs a game instance and prints the progress / current state at every turn.
@@ -90,10 +114,17 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, **k
     yield game, moves_history
 
     # time feature
-    total_time = 8  # for testing, implement this on startup )
-    print(f"The game will end in {total_time} seconds")
-    gameMasterClock = threading.Timer(total_time, end_game, [game])
-    gameMasterClock.start()
+    ###### testing block
+    MAX_TIME = 60
+    time_event = threading.Event()
+    time_event.set()
+    controller_event = threading.Event()
+    controller_event.set()
+    t = threading.Thread(target=timer, args=[time_event, controller_event, MAX_TIME, game])
+    t.start()
+    c = threading.Thread()
+    c.start()
+    #####
 
     while True:
         score = game.get_score()
@@ -108,12 +139,14 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, **k
         try:
             move = black.turn(game, moves_history) if game.turn is Player.BLACK else white.turn(game, moves_history)
 
-            # add for reset the timer
-            if not move is None:
-                gameMasterClock.cancel()
-                print(f"Clock reset The game will end in {total_time} seconds")
-                gameMasterClock = threading.Timer(total_time, end_game, [game])
-                gameMasterClock.start()
+            # reset the timer
+            if not move == 'pause' and not move == 'resume':
+                controller_event.clear()
+                t.join()  # destroy the timer thread
+                controller_event.set()
+                # start another timer for opponent
+                t = threading.Thread(target=timer, args=[time_event, controller_event, MAX_TIME, game])
+                t.start()
 
             if move == 'undo':
                 if len(moves_history) == 0:
@@ -133,6 +166,15 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, **k
                 moves_history.pop()
                 print('Undone last two moves\n')
                 continue
+            if move == 'pause':
+                time_event.clear()
+                print("The game has been paused!\n")
+                continue
+            if move == 'resume':
+                time_event.set()
+                print("The game is resumed.\n")
+                continue
+
             print(_format_move(game.turn, move, len(moves_history)), end='\n\n')
 
             game.move(*move)
