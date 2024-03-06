@@ -142,67 +142,18 @@ def _format_move(turn: Player, move: Tuple[Union[Space, Tuple[Space, Space]], Di
     return f'{moves + 1}: {turn.name} moves {", ".join(marbles)} in direction {move[1].name}'
 
 
-def print_move_history(moves_history):
-    black = True
-    for index, move in enumerate(moves_history, start=1):
-        if black:
-            colour = "BLACK"
-        else:
-            colour = "WHITE"
+def write_move_history_to_files(game, move, moves_history, file, file2, file3):
+    file.write(_format_move(game.turn, move, len(moves_history)))
+    file.write('\n')
 
-        # print(f"MOVE {index} | {colour} | {move[0].name} | DIRECTION: {move[1].name.replace('_', ' ')}")
-
-        if isinstance(move[0], tuple):  # Check if move involves one or two spaces
-            if len(move[0]) == 2:  # If it involves two spaces
-                start_position = move[0][0].name  # Accessing the name of the first element in the tuple
-                end_position = move[0][1].name  # Accessing the name of the second element in the tuple
-                direction = move[1].value.replace("_", " ").title()
-                print(f"Move {index}: Marbles from {start_position} to {end_position}, Direction: {direction}")
-            else:  # If it involves only one space
-                position = move[0].name
-                direction = move[1].value.replace("_", " ").title()
-                print(f"Move {index}: Marble at {position}, Direction: {direction}")
-        else:  # If it's just a single space
-            position = move[0].name
-            direction = move[1].value.replace("_", " ").title()
-            print(f"Move {index}: Marble at {position}, Direction: {direction}")
-
-        black = not black
-
-
-def write_move_history_to_file(moves_history, filename):
-    black = True
-    with open(filename, 'w') as file:
-        file.write("Move History:\n\n")
-        for index, move in enumerate(moves_history, start=1):
-            if black:
-                colour = "BLACK"
-            else:
-                colour = "WHITE"
-
-            file.write(f"MOVE {index}:\n")
-            file.write(f"\tColour: {colour}\n")
-
-            if isinstance(move[0], tuple):  # Check if move involves one, two, or three spaces
-                if len(move[0]) == 2:  # If it involves two spaces
-                    start_position = move[0][0].name  # Accessing the name of the first element in the tuple
-                    end_position = move[0][1].name  # Accessing the name of the second element in the tuple
-                    file.write(f"\tMarbles from {start_position} to {end_position}\n")
-                elif len(move[0]) == 3:  # If it involves three spaces
-                    marble_positions = [space.name for space in
-                                        move[0]]  # Accessing the names of all spaces in the tuple
-                    file.write("\tMarbles from {} to {} to {}\n".format(*marble_positions))
-                else:  # If it involves only one space
-                    position = move[0].name
-                    file.write(f"\tMarble at {position}\n")
-            else:  # If it's just a single space
-                position = move[0].name
-                file.write(f"\tMarble at {position}\n")
-
-            file.write(f"\tDirection: {move[1].value.replace('_', ' ').title()}\n")
-            file.write("\n")
-
-            black = not black
+    if game.turn is Player.BLACK:
+        file2.write(_format_move(game.turn, move, len(moves_history)))
+        file2.write('\n')
+        # black move count++
+    else:
+        file3.write(_format_move(game.turn, move, len(moves_history)))
+        file3.write('\n')
+        # white move count++
 
 
 def run_game(black: AbstractPlayer, white: AbstractPlayer, **kwargs) \
@@ -237,15 +188,7 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, **kwargs) \
                 move = black.turn(game, moves_history) if game.turn is Player.BLACK else white.turn(game, moves_history)
                 print(_format_move(game.turn, move, len(moves_history)), end='\n\n')
 
-                file.write(_format_move(game.turn, move, len(moves_history)))
-                file.write('\n')
-
-                if game.turn is Player.BLACK:
-                    file2.write(_format_move(game.turn, move, len(moves_history)))
-                    file2.write('\n')
-                else:
-                    file3.write(_format_move(game.turn, move, len(moves_history)))
-                    file3.write('\n')
+                write_move_history_to_files(game, move, moves_history, file, file2, file3)
 
                 game.move(*move)
                 game.switch_player()
@@ -259,9 +202,6 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, **kwargs) \
                 print(f'{game.turn.name}\'s move caused an exception\n')
                 print(format_exc())
                 break
-
-    # print_move_history(moves_history)
-    write_move_history_to_file(moves_history, "move_history.txt")
 
 
 if __name__ == '__main__':  # pragma: no cover
