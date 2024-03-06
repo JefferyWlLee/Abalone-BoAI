@@ -323,7 +323,7 @@ class Game:
         self.switch_player()
 
     def self_undo(self) -> None:
-        """Undoes the last move."""
+        """Undoes the last move the current player made."""
         self.board = self.previous_boards.pop()
         self.switch_player()
         self.board = self.previous_boards.pop()

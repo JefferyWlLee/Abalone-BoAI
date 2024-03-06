@@ -59,6 +59,7 @@ def _format_move(turn: Player, move: Tuple[Union[Space, Tuple[Space, Space]], Di
     marbles = map(lambda space: space.name, marbles)
     return f'{moves + 1}: {turn.name} moves {", ".join(marbles)} in direction {move[1].name}'
 
+
 def end_game(game):
     """
     create a end game function. Callback after certain period of time
@@ -70,6 +71,7 @@ def end_game(game):
     else:
         print(f'Time is up. BLACK {score[0]} - WHITE {score[1]} result is even')
     os._exit(1)
+
 
 def timer(time_event, controller_event, max_time, game):
     """
@@ -87,15 +89,16 @@ def timer(time_event, controller_event, max_time, game):
                 print(f'Time is up. BLACK {score[0]} - WHITE {score[1]} result is tie')
             os._exit(1)
 
-        #countdown every second
-        time_event.wait() # control pause or resume
-        sys.stdout.write(f"\r[Time left: {int(countDown/60)}:{countDown % 60:02d}]")
+        # countdown every second
+        time_event.wait()  # control pause or resume
+        sys.stdout.write(f"\r[Time left: {int(countDown / 60)}:{countDown % 60:02d}]")
         sys.stdout.flush()
         countDown -= 1
         time.sleep(1)
     print("clock stop completely...")
 
-def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, **kwargs) \
+
+def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, move_limit, **kwargs) \
         -> Generator[Tuple[Game, List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]], None, None]:
     """Runs a game instance and prints the progress / current state at every turn.
 
@@ -109,6 +112,9 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, **k
         A tuple of the current `abalone.game.Game` instance and the move history at the start of the game and after\
         every legal turn.
     """
+
+    moves_limit = move_limit
+    moves_made = 0
     game = Game(initial_position=initial_position)
     moves_history = []
     yield game, moves_history
@@ -180,7 +186,11 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, **k
             game.move(*move)
             game.switch_player()
             moves_history.append(move)
-
+            moves_made += 1
+            if moves_made >= moves_limit:
+                print(f"Moves limit reached. {moves_limit} moves have been made.")
+                end_game(game)
+                break
             yield game, moves_history
         except IllegalMoveException as ex:
             print(f'{game.turn.name}\'s tried to perform an illegal move ({ex})\n')
@@ -230,6 +240,19 @@ if __name__ == '__main__':  # pragma: no cover
         black = RandomPlayer()
         white = RandomPlayer()
 
-    # Run the game with these player instances and an initial game position
-    list(run_game(black, white, initial_position=game))
 
+    while(True):
+        try:
+            move_limit = int(input("Enter the move limit per player: "))
+            if move_limit > 0:
+                move_limit = move_limit * 2
+                break
+            else:
+                print("Invalid input, please enter a positive number")
+        except:
+            print("Invalid input, please enter number")
+
+
+
+    # Run the game with these player instances and an initial game position
+    list(run_game(black, white, initial_position=game, move_limit=move_limit))
