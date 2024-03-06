@@ -378,4 +378,4 @@ if __name__ == '__main__':  # pragma: no cover
             print("Invalid input, please enter number")
 
     # Run the game with these player instances and an initial game position
-    list(run_game(black, white, initial_position=game, move_limit=move_limit))
+    list(run_game(black, white, initial_position=game, move_limit=move_limit, time_limit=time_limit))
