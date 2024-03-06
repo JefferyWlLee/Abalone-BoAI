@@ -222,32 +222,43 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, **kwargs) \
     moves_history = []
     yield game, moves_history
 
-    while True:
-        score = game.get_score()
-        score_str = f'BLACK {score[0]} - WHITE {score[1]}'
-        print(score_str, game, '', sep='\n')
+    with open("moves.txt", 'w') as file, open("black_moves.txt", 'w') as file2, open("white_moves.txt", 'w') as file3:
+        while True:
+            score = game.get_score()
+            score_str = f'BLACK {score[0]} - WHITE {score[1]}'
+            print(score_str, game, '', sep='\n')
 
-        winner = _get_winner(score)
-        if winner is not None:
-            print(f'{winner.name} won!')
-            break
+            winner = _get_winner(score)
+            if winner is not None:
+                print(f'{winner.name} won!')
+                break
 
-        try:
-            move = black.turn(game, moves_history) if game.turn is Player.BLACK else white.turn(game, moves_history)
-            print(_format_move(game.turn, move, len(moves_history)), end='\n\n')
+            try:
+                move = black.turn(game, moves_history) if game.turn is Player.BLACK else white.turn(game, moves_history)
+                print(_format_move(game.turn, move, len(moves_history)), end='\n\n')
 
-            game.move(*move)
-            game.switch_player()
-            moves_history.append(move)
+                file.write(_format_move(game.turn, move, len(moves_history)))
+                file.write('\n')
 
-            yield game, moves_history
-        except IllegalMoveException as ex:
-            print(f'{game.turn.name}\'s tried to perform an illegal move ({ex})\n')
-            break
-        except:
-            print(f'{game.turn.name}\'s move caused an exception\n')
-            print(format_exc())
-            break
+                if game.turn is Player.BLACK:
+                    file2.write(_format_move(game.turn, move, len(moves_history)))
+                    file2.write('\n')
+                else:
+                    file3.write(_format_move(game.turn, move, len(moves_history)))
+                    file3.write('\n')
+
+                game.move(*move)
+                game.switch_player()
+                moves_history.append(move)
+
+                yield game, moves_history
+            except IllegalMoveException as ex:
+                print(f'{game.turn.name}\'s tried to perform an illegal move ({ex})\n')
+                break
+            except:
+                print(f'{game.turn.name}\'s move caused an exception\n')
+                print(format_exc())
+                break
 
     # print_move_history(moves_history)
     write_move_history_to_file(moves_history, "move_history.txt")
