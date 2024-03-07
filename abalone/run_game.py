@@ -61,7 +61,7 @@ def _format_move(turn: Player, move: Tuple[Union[Space, Tuple[Space, Space]], Di
 
 
 def write_move_history_to_files(game, move, moves_history, file, file2, file3, black_move_count, white_move_count):
-    file.write(_format_move(game.turn, move, len(moves_history)))
+    file.write(_format_move(game.turn, move, len(moves_history) - 1))
     file.write('\n')
 
     if game.turn is Player.BLACK:
@@ -185,13 +185,6 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                 #     t1 = threading.Thread(target=timer, args=[time_event1, controller_event1, MAX_TIME, game])
                 #     t1.start()
 
-                write_move_history_to_files(game, move, moves_history, file, file2, file3, black_move_count, white_move_count)
-
-                if game.turn is Player.BLACK:
-                    black_move_count += 1
-                else:
-                    white_move_count += 1
-
                 # turn change create another timer for 2nd opponent on first move only
                 if not move == 'pause' and not move == 'resume':
                     # if turn is player1
@@ -209,6 +202,7 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                         continue
                     game.undo()
                     moves_history.pop()
+                    moves_made -= 1
                     print('Undone last move\n')
                     continue
                 if move == 'undo self':
@@ -219,6 +213,7 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                     game.undo()
                     moves_history.pop()
                     moves_history.pop()
+                    moves_made -= 2
                     print('Undone last two moves\n')
                     continue
                 if move == 'pause':
@@ -238,11 +233,20 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
 
                 print(_format_move(game.turn, move, len(moves_history)), end='\n\n')
 
-                game.move(*move)
-                game.switch_player()
                 moves_history.append(move)
 
-                print(f"test show: {time_message}")  # can show time in anywhere of the code
+                write_move_history_to_files(game, move, moves_history, file, file2, file3, black_move_count,
+                                            white_move_count)
+
+                if game.turn is Player.BLACK:
+                    black_move_count += 1
+                else:
+                    white_move_count += 1
+
+                # print(f"test show: {time_message}")  # can show time in anywhere of the code
+
+                game.move(*move)
+                game.switch_player()
 
                 moves_made += 1
                 if moves_made >= moves_limit:
