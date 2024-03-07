@@ -57,7 +57,8 @@ def _format_move(turn: Player, move: Tuple[Union[Space, Tuple[Space, Space]], Di
     """
     marbles = [move[0]] if isinstance(move[0], Space) else line_from_to(*move[0])[0]
     marbles = map(lambda space: space.name, marbles)
-    return f'{moves + 1}: {turn.name} moves {", ".join(marbles)} in direction {move[1].name}'
+    return (f'{moves + 1}: {turn.name} moves {", ".join(marbles)} in direction '
+            f'{move[1].name.replace("_", " ")}')
 
 
 def write_move_history_to_files(game, move, moves_history, file, file2, file3, black_move_count, white_move_count):
@@ -160,6 +161,8 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
 
             try:
                 move = black.turn(game, moves_history) if game.turn is Player.BLACK else white.turn(game, moves_history)
+
+                print(move)
 
                 write_move_history_to_files(game, move, moves_history, file, file2, file3, black_count, white_count)
 
