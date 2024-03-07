@@ -28,13 +28,21 @@ from enums import Direction, Space
 from game import Game
 
 
-def _prompt_move_type() -> str:
-    return inquirer.prompt([
-        inquirer.List('move_type',
-                      message='What type of move do you want to perform?',
-                      choices=['In-line', 'Broadside', 'undo', 'undo self', 'pause', 'resume']
-                      )
-    ])['move_type']
+def _prompt_move_type(selection_lock) -> str:
+    if selection_lock:
+        return inquirer.prompt([
+            inquirer.List('move_type',
+                          message='What type of move do you want to perform?',
+                          choices=['undo', 'undo self', 'pause', 'resume']
+                          )
+        ])['move_type']
+    else:
+        return inquirer.prompt([
+            inquirer.List('move_type',
+                          message='What type of move do you want to perform?',
+                          choices=['In-line', 'Broadside', 'undo', 'undo self', 'pause', 'resume']
+                          )
+        ])['move_type']
 
 
 def _prompt_marble1(move_type: str, legal_moves: List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]) -> Space:
@@ -103,10 +111,11 @@ def _prompt_direction(marbles: Union[Space, Tuple[Space, Space]],
 
 class HumanPlayer(AbstractPlayer):
 
-    def turn(self, game: Game, moves_history: List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]) \
+    def turn(self, game: Game, moves_history: List[Tuple[Union[Space, Tuple[Space, Space]], Direction]], selection_lock: bool) \
             -> str | tuple[Space | tuple[Space, Space], Direction]:
         legal_moves = list(game.generate_legal_moves())
-        move_type = _prompt_move_type()
+        # print(f"now selection: {selection_lock}")
+        move_type = _prompt_move_type(selection_lock)
 
         if move_type == 'undo':
             return 'undo'
@@ -117,6 +126,7 @@ class HumanPlayer(AbstractPlayer):
             return 'pause'
         if move_type == 'resume': #kevin add for resume test
             return 'resume'
+
 
         marble1 = _prompt_marble1(move_type, legal_moves)
 

@@ -28,7 +28,7 @@ from game import Game
 class AbstractPlayer(ABC):
 
     @abstractmethod
-    def turn(self, game: Game, moves_history: List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]) \
+    def turn(self, game: Game, moves_history: List[Tuple[Union[Space, Tuple[Space, Space]], Direction]], selection_lock: bool) \
             -> Tuple[Union[Space, Tuple[Space, Space]], Direction]:
         """This method is called from the outside to prompt this player to make a move.
 
