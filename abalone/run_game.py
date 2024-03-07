@@ -159,6 +159,15 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
     c2 = threading.Thread(daemon=True)
     c2.start()
     time_event2.clear() # pause the timer for player 2 when player 1 playing
+    MAX_TIME = time_limit
+    time_event = threading.Event()
+    time_event.set()
+    controller_event = threading.Event()
+    controller_event.set()
+    t = threading.Thread(target=timer, args=[time_event, controller_event, MAX_TIME, game])
+    t.start()
+    c = threading.Thread()
+    c.start()
     #####
 
     with open("moves.txt", 'w') as file, open("black_moves.txt", 'w') as file2, open("white_moves.txt", 'w') as file3:
@@ -172,6 +181,18 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                 print(f'{winner.name} won!')
                 break
 
+            try:
+                move = black.turn(game, moves_history, lock_selection) if game.turn is Player.BLACK else \
+                    white.turn(game, moves_history, lock_selection)
+
+                # reset the timer
+                if not move == 'pause' and not move == 'resume':
+                    controller_event.clear()
+                    t.join()  # destroy the timer thread
+                    controller_event.set()
+                    # start another timer for opponent
+                    t = threading.Thread(target=timer, args=[time_event, controller_event, MAX_TIME, game])
+                    t.start()
             try:
                 move = black.turn(game, moves_history, lock_selection) if game.turn is Player.BLACK else \
                     white.turn(game, moves_history, lock_selection)
@@ -202,7 +223,6 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                         continue
                     game.undo()
                     moves_history.pop()
-                    # moves_made -= 1
                     print('Undone last move\n')
                     continue
                 if move == 'undo self':
@@ -213,21 +233,14 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                     game.undo()
                     moves_history.pop()
                     moves_history.pop()
-                    # moves_made -= 2
                     print('Undone last two moves\n')
                     continue
                 if move == 'pause':
-                    time_event1.clear()
-                    time_event2.clear()
-                    lock_selection=True
+                    time_event.clear()
                     print("The game has been paused!\n")
                     continue
                 if move == 'resume':
-                    if (game.turn == Player.WHITE):
-                        time_event1.set()
-                    else:
-                        time_event2.set()
-                    lock_selection = False
+                    time_event.set()
                     print("The game is resumed.\n")
                     continue
 
@@ -264,12 +277,17 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
 
 
 if __name__ == '__main__':  # pragma: no cover
-    # Run a game from the command line with default configuration.
-    import importlib
-    import sys
-
+    # # Run a game from the command line with default configuration.
+    # import importlib
+    # import sys
+    #
     # if len(sys.argv) != 3:
     #     sys.exit(1)
+    # black = sys.argv[1].rsplit('.', 1)
+    # black = getattr(importlib.import_module(black[0]), black[1])
+    # white = sys.argv[2].rsplit('.', 1)
+    # white = getattr(importlib.import_module(white[0]), white[1])
+    # list(run_game(black(), white()))
 
     game_mode = inquirer.prompt([
         inquirer.List('game_mode',
@@ -285,14 +303,14 @@ if __name__ == '__main__':  # pragma: no cover
     else:
         game = InitialPosition.BELGIAN_DAISY
 
-    player1 = inquirer.prompt([
-        inquirer.List('player1',
-                      message='Who do you want to be Black?',
-                      choices=['Player', 'Computer(Random)']
+    versus_mode = inquirer.prompt([
+        inquirer.List('versus_mode',
+                      message='What type of game do you want?',
+                      choices=['Player vs Player', 'Player vs Computer', 'Computer vs Computer']
                       )
-    ])['player1']
+    ])['versus_mode']
 
-    if player1 == 'Player':
+    if versus_mode == 'Player vs Player':
         black = HumanPlayer()
     else:
         black = RandomPlayer()
@@ -306,7 +324,11 @@ if __name__ == '__main__':  # pragma: no cover
 
     if player2 == 'Player':
         white = HumanPlayer()
+    elif versus_mode == 'Player vs Computer':
+        black = HumanPlayer()
+        white = RandomPlayer()
     else:
+        black = RandomPlayer()
         white = RandomPlayer()
 
     while True:

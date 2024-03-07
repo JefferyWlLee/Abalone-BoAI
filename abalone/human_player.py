@@ -22,7 +22,6 @@ from typing import List, Tuple, Union
 
 import inquirer
 
-from enums import Space, Direction
 from abstract_player import AbstractPlayer
 from enums import Direction, Space
 from game import Game
