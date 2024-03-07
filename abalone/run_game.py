@@ -259,22 +259,31 @@ if __name__ == '__main__':  # pragma: no cover
     else:
         game = InitialPosition.BELGIAN_DAISY
 
-    versus_mode = inquirer.prompt([
-        inquirer.List('versus_mode',
-                      message='What type of game do you want?',
-                      choices=['Player vs Player', 'Player vs Computer', 'Computer vs Computer']
+    player1 = inquirer.prompt([
+        inquirer.List('player1',
+                      message='Who do you want to be Black?',
+                      choices=['Player', 'Computer(Random)']
                       )
-    ])['versus_mode']
+    ])['player1']
 
-    if versus_mode == 'Player vs Player':
+    if player1 == 'Player':
         black = HumanPlayer()
-        white = HumanPlayer()
-    elif versus_mode == 'Player vs Computer':
-        black = HumanPlayer()
-        white = RandomPlayer()
     else:
         black = RandomPlayer()
+
+    player2 = inquirer.prompt([
+        inquirer.List('player2',
+                      message='Who do you want to be White?',
+                      choices=['Player', 'Computer(Random)']
+                      )
+    ])['player2']
+
+
+    if player2 == 'Player':
+        white = HumanPlayer()
+    else:
         white = RandomPlayer()
+
 
 
     while(True):
