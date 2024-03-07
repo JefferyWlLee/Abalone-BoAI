@@ -8,6 +8,13 @@ how to start game using executable:
     step 1: navigate to the folder where the executable is located
     step 2: double click the executable
 
+How to create the executable:
+    step 1: open terminal
+    step 2: run pip install pyinstaller
+    step 3: navigate to the folder where the source code is located
+    step 4: run the command "pyinstaller --onefile --paths=/path/to/your/run_game.py run_game.py"
+    step 5: navigate to the dist folder and run the executable
+
     Instructions on how to play the game:
     1. user will be prompted with this menu to choose the inital layout. Use arrow keys to navigate and enter to select
 
