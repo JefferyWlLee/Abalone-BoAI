@@ -188,7 +188,7 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                 # turn change create another timer for 2nd opponent on first move only
                 if not move == 'pause' and not move == 'resume':
                     # if turn is player1
-                    if(game.turn == Player.WHITE):
+                    if game.turn == Player.WHITE:
                         time_event1.clear()
                         time_event2.set()
                         # print("turn round")
@@ -202,7 +202,7 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                         continue
                     game.undo()
                     moves_history.pop()
-                    moves_made -= 1
+                    # moves_made -= 1
                     print('Undone last move\n')
                     continue
                 if move == 'undo self':
@@ -213,7 +213,7 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                     game.undo()
                     moves_history.pop()
                     moves_history.pop()
-                    moves_made -= 2
+                    # moves_made -= 2
                     print('Undone last two moves\n')
                     continue
                 if move == 'pause':
@@ -304,15 +304,12 @@ if __name__ == '__main__':  # pragma: no cover
                       )
     ])['player2']
 
-
     if player2 == 'Player':
         white = HumanPlayer()
     else:
         white = RandomPlayer()
 
-
-
-    while(True):
+    while True:
         try:
             move_limit = int(input("Enter the move limit per player: "))
             if move_limit > 0:
@@ -323,7 +320,7 @@ if __name__ == '__main__':  # pragma: no cover
         except:
             print("Invalid input, please enter number")
 
-    while (True):
+    while True:
         try:
             black_time_limit = int(input("Enter the time limit for Black in minutes: "))
             white_time_limit = int(input("Enter the time limit for White in minutes: "))
