@@ -47,9 +47,9 @@ class Marble(Enum):
         if self is Marble.WHITE:
             return Fore.WHITE + u'\u25CF' + Fore.RESET
         if self is Marble.BLACK:
-            return Fore.BLACK + u'\u25CF' + Fore.RESET
+            # Assuming Fore.LIGHTBLACK_EX is a valid approximation for off-black/dark gray.
+            return Fore.LIGHTBLACK_EX + u'\u25CF' + Fore.RESET
         return Style.DIM + u'\u00B7' + Style.NORMAL
-
 
 class Space(Enum):
     """Enumeration of all spaces of the board.
