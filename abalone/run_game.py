@@ -18,7 +18,7 @@
 # SOFTWARE.
 
 """This module runs a `abalone.game.Game`."""
-
+import sys
 from traceback import format_exc
 from typing import Generator, List, Tuple, Union
 import time, threading, os
@@ -193,18 +193,6 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                     # start another timer for opponent
                     t = threading.Thread(target=timer, args=[time_event, controller_event, MAX_TIME, game])
                     t.start()
-            try:
-                move = black.turn(game, moves_history, lock_selection) if game.turn is Player.BLACK else \
-                    white.turn(game, moves_history, lock_selection)
-                # print(f"white:{Player.WHITE} ...back: {Player.BLACK}")
-                # reset the timer
-                # if not move == 'pause' and not move == 'resume':
-                #     controller_event1.clear()
-                #     t1.join()  # destroy the timer thread
-                #     controller_event1.set()
-                #     # start another timer for opponent
-                #     t1 = threading.Thread(target=timer, args=[time_event1, controller_event1, MAX_TIME, game])
-                #     t1.start()
 
                 # turn change create another timer for 2nd opponent on first move only
                 if not move == 'pause' and not move == 'resume':
@@ -276,6 +264,7 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                 break
 
 
+
 if __name__ == '__main__':  # pragma: no cover
     # # Run a game from the command line with default configuration.
     # import importlib
@@ -303,14 +292,14 @@ if __name__ == '__main__':  # pragma: no cover
     else:
         game = InitialPosition.BELGIAN_DAISY
 
-    versus_mode = inquirer.prompt([
-        inquirer.List('versus_mode',
-                      message='What type of game do you want?',
-                      choices=['Player vs Player', 'Player vs Computer', 'Computer vs Computer']
+    player1 = inquirer.prompt([
+        inquirer.List('player1',
+                      message='Who do you want to be Black?',
+                      choices=['Player', 'Computer(Random)']
                       )
-    ])['versus_mode']
+    ])['player1']
 
-    if versus_mode == 'Player vs Player':
+    if player1 == 'Player':
         black = HumanPlayer()
     else:
         black = RandomPlayer()
@@ -324,11 +313,7 @@ if __name__ == '__main__':  # pragma: no cover
 
     if player2 == 'Player':
         white = HumanPlayer()
-    elif versus_mode == 'Player vs Computer':
-        black = HumanPlayer()
-        white = RandomPlayer()
     else:
-        black = RandomPlayer()
         white = RandomPlayer()
 
     while True:
