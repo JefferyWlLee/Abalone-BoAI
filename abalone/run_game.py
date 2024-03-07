@@ -122,24 +122,23 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
 
     # time feature
     ###### testing block
-    MAX_TIME =time_limit
-    MAX_TIME = 60
     lock_selection=False
     # player 1 threads
+
     time_event1 = threading.Event()
-    time_event1.set()
     controller_event1 = threading.Event()
     controller_event1.set()
-    t1 = threading.Thread(target=timer, args=[time_event1, controller_event1, MAX_TIME, game])
+    t1 = threading.Thread(target=timer, args=[time_event1, controller_event1, time_limit[0], game])
     t1.start()
     c1 = threading.Thread()
     c1.start()
+    time_event1.set()
     # player 2 threads
     time_event2 = threading.Event()
     time_event2.set()
     controller_event2 = threading.Event()
     controller_event2.set()
-    t2 = threading.Thread(target=timer, args=[time_event2, controller_event2, MAX_TIME, game])
+    t2 = threading.Thread(target=timer, args=[time_event2, controller_event2, time_limit[1], game])
     t2.start()
     c2 = threading.Thread()
     c2.start()
@@ -286,9 +285,12 @@ if __name__ == '__main__':  # pragma: no cover
 
     while (True):
         try:
-            time_limit = int(input("Enter the time limit per player in minutes: "))
-            if time_limit > 0:
-                time_limit = time_limit * 60
+            black_time_limit = int(input("Enter the time limit for Black in minutes: "))
+            white_time_limit = int(input("Enter the time limit for White in minutes: "))
+            if white_time_limit > 0 or black_time_limit > 0:
+                white_time_limit = white_time_limit * 60
+                black_time_limit = black_time_limit * 60
+                time_limit = (white_time_limit, black_time_limit)
                 break
             else:
                 print("Invalid input, please enter a positive number")
