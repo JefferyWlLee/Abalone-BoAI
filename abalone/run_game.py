@@ -91,7 +91,7 @@ def timer(time_event, controller_event, max_time, game):
 
         # countdown every second
         time_event.wait()  # control pause or resume
-        sys.stdout.write(f"\r[Time left: {int(countDown / 60)}:{countDown % 60:02d}]")
+        sys.stdout.write(f"\r[Time left for {game.turn}: {int(countDown / 60)}:{countDown % 60:02d}]")
         sys.stdout.flush()
         countDown -= 1
         time.sleep(1)
@@ -125,14 +125,25 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
     MAX_TIME =time_limit
     MAX_TIME = 60
     lock_selection=False
-    time_event = threading.Event()
-    time_event.set()
-    controller_event = threading.Event()
-    controller_event.set()
-    t = threading.Thread(target=timer, args=[time_event, controller_event, MAX_TIME, game])
-    t.start()
-    c = threading.Thread()
-    c.start()
+    # player 1 threads
+    time_event1 = threading.Event()
+    time_event1.set()
+    controller_event1 = threading.Event()
+    controller_event1.set()
+    t1 = threading.Thread(target=timer, args=[time_event1, controller_event1, MAX_TIME, game])
+    t1.start()
+    c1 = threading.Thread()
+    c1.start()
+    # player 2 threads
+    time_event2 = threading.Event()
+    time_event2.set()
+    controller_event2 = threading.Event()
+    controller_event2.set()
+    t2 = threading.Thread(target=timer, args=[time_event2, controller_event2, MAX_TIME, game])
+    t2.start()
+    c2 = threading.Thread()
+    c2.start()
+    time_event2.clear() # pause the timer for player 2 when player 1 playing
     #####
 
     while True:
@@ -148,15 +159,26 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
         try:
             move = black.turn(game, moves_history, lock_selection) if game.turn is Player.BLACK else \
                 white.turn(game, moves_history, lock_selection)
-
+            print(f"white:{Player.WHITE} ...back: {Player.BLACK}")
             # reset the timer
+            # if not move == 'pause' and not move == 'resume':
+            #     controller_event1.clear()
+            #     t1.join()  # destroy the timer thread
+            #     controller_event1.set()
+            #     # start another timer for opponent
+            #     t1 = threading.Thread(target=timer, args=[time_event1, controller_event1, MAX_TIME, game])
+            #     t1.start()
+
+            # turn change create another timer for 2nd opponent on first move only
             if not move == 'pause' and not move == 'resume':
-                controller_event.clear()
-                t.join()  # destroy the timer thread
-                controller_event.set()
-                # start another timer for opponent
-                t = threading.Thread(target=timer, args=[time_event, controller_event, MAX_TIME, game])
-                t.start()
+                # if turn is player1
+                if(game.turn == Player.WHITE):
+                    time_event1.clear()
+                    time_event2.set()
+                    print("turn round")
+                else:
+                    time_event2.clear()
+                    time_event1.set()
 
             if move == 'undo':
                 if len(moves_history) == 0:
@@ -177,13 +199,17 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                 print('Undone last two moves\n')
                 continue
             if move == 'pause':
-                time_event.clear()
+                time_event1.clear()
+                time_event2.clear()
                 lock_selection=True
                 print("The game has been paused!\n")
                 continue
             if move == 'resume':
-                time_event.set()
-                lock_selection=False
+                if (game.turn == Player.WHITE):
+                    time_event1.set()
+                else:
+                    time_event2.set()
+                lock_selection = False
                 print("The game is resumed.\n")
                 continue
 
