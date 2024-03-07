@@ -72,6 +72,16 @@ def write_move_history_to_files(game, move, moves_history, file, file2, file3, b
         file3.write('\n')
 
 
+def remove_last_line(file_path):
+    # Read all lines from the file
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+
+    # Rewrite all lines except the last one
+    with open(file_path, 'w') as file:
+        file.writelines(lines[:-1])
+
+
 def end_game(game):
     """
     create a end game function. Callback after certain period of time
@@ -203,6 +213,8 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                     game.undo()
                     moves_history.pop()
                     moves_made -= 1
+                    remove_last_line(file)
+                    remove_last_line(file3)
                     print('Undone last move\n')
                     continue
                 if move == 'undo self':
