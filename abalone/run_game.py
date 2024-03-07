@@ -77,6 +77,7 @@ def timer(time_event, controller_event, max_time, game):
     """
     countdown clock, pause
     """
+    global time_message
     countDown = max_time
     while controller_event.is_set():
         if countDown <= 1:
@@ -91,11 +92,12 @@ def timer(time_event, controller_event, max_time, game):
 
         # countdown every second
         time_event.wait()  # control pause or resume
-        sys.stdout.write(f"\r[Time left for {game.turn}: {int(countDown / 60)}:{countDown % 60:02d}]")
+        sys.stdout.write(f"\r[Time left for {str(game.turn).split('.')[1]}: {int(countDown / 60)}:{countDown % 60:02d}]")
+        time_message = f"{str(game.turn).split('.')[1]}: {int(countDown / 60)}:{countDown % 60:02d}"  # for logging of time
         sys.stdout.flush()
         countDown -= 1
         time.sleep(1)
-    print("clock stop completely...")
+    # print("clock stop completely...")
 
 
 def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, move_limit, time_limit, **kwargs) \
@@ -128,9 +130,9 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
     time_event1 = threading.Event()
     controller_event1 = threading.Event()
     controller_event1.set()
-    t1 = threading.Thread(target=timer, args=[time_event1, controller_event1, time_limit[0], game])
+    t1 = threading.Thread(target=timer, args=[time_event1, controller_event1, time_limit[0], game], daemon=True)
     t1.start()
-    c1 = threading.Thread()
+    c1 = threading.Thread(daemon=True)
     c1.start()
     time_event1.set()
     # player 2 threads
@@ -138,9 +140,9 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
     time_event2.set()
     controller_event2 = threading.Event()
     controller_event2.set()
-    t2 = threading.Thread(target=timer, args=[time_event2, controller_event2, time_limit[1], game])
+    t2 = threading.Thread(target=timer, args=[time_event2, controller_event2, time_limit[1], game], daemon=True)
     t2.start()
-    c2 = threading.Thread()
+    c2 = threading.Thread(daemon=True)
     c2.start()
     time_event2.clear() # pause the timer for player 2 when player 1 playing
     #####
@@ -158,7 +160,7 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
         try:
             move = black.turn(game, moves_history, lock_selection) if game.turn is Player.BLACK else \
                 white.turn(game, moves_history, lock_selection)
-            print(f"white:{Player.WHITE} ...back: {Player.BLACK}")
+            # print(f"white:{Player.WHITE} ...back: {Player.BLACK}")
             # reset the timer
             # if not move == 'pause' and not move == 'resume':
             #     controller_event1.clear()
@@ -174,7 +176,7 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                 if(game.turn == Player.WHITE):
                     time_event1.clear()
                     time_event2.set()
-                    print("turn round")
+                    # print("turn round")
                 else:
                     time_event2.clear()
                     time_event1.set()
@@ -217,6 +219,9 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
             game.move(*move)
             game.switch_player()
             moves_history.append(move)
+
+            print(f"test show: {time_message}")  # can show time in anywhere of the code
+
             moves_made += 1
             if moves_made >= moves_limit:
                 print(f"Moves limit reached. {moves_limit} moves have been made.")
