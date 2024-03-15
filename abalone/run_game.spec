@@ -3,7 +3,7 @@
 
 a = Analysis(
     ['run_game.py'],
-    pathex=['C:\\Users\\namel\\PycharmProjects\\Abalone-BoAi\\abalone'],
+    pathex=['C:\\Users\\namel\\PycharmProjects\\Abalone-BoAI\\abalone'],
     binaries=[],
     datas=[],
     hiddenimports=[],

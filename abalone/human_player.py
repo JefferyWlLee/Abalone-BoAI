@@ -114,6 +114,7 @@ class HumanPlayer(AbstractPlayer):
     def turn(self, game: Game, moves_history: List[Tuple[Union[Space, Tuple[Space, Space]], Direction]], selection_lock: bool) \
             -> str | tuple[Space | tuple[Space, Space], Direction]:
         legal_moves = list(game.generate_legal_moves())
+        print(legal_moves)
         # print(f"now selection: {selection_lock}")
         move_type = _prompt_move_type(selection_lock)
 

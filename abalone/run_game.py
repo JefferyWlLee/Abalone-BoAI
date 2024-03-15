@@ -18,7 +18,7 @@
 # SOFTWARE.
 
 """This module runs a `abalone.game.Game`."""
-
+from enum import Enum
 from traceback import format_exc
 from typing import Generator, List, Tuple, Union
 import time, threading, os
@@ -26,11 +26,12 @@ import time, threading, os
 import inquirer
 
 from abstract_player import AbstractPlayer
-from enums import Direction, Player, Space, InitialPosition
+from enums import Direction, Player, Space, InitialPosition, Marble
 from game import Game, IllegalMoveException
 from utils import line_from_to
 from human_player import HumanPlayer
 from random_player import RandomPlayer
+import Input_board
 
 
 def _get_winner(score: tuple[int, int]) -> Union[Player, None]:
@@ -112,7 +113,8 @@ def timer(time_event, controller_event, max_time, game):
     # print("clock stop completely...")
 
 
-def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, move_limit, time_limit, **kwargs) \
+def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, move_limit, time_limit
+             , player, **kwargs) \
         -> Generator[Tuple[Game, List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]], None, None]:
     """Runs a game instance and prints the progress / current state at every turn.
 
@@ -132,7 +134,7 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
     moves_made = 0
     black_move_count = 0
     white_move_count = 0
-    game = Game(initial_position=initial_position)
+    game = Game(initial_position=initial_position, first_turn=player)
     moves_history = []
     yield game, moves_history
 
@@ -274,16 +276,26 @@ if __name__ == '__main__':  # pragma: no cover
     game_mode = inquirer.prompt([
         inquirer.List('game_mode',
                       message='What type layout do you want?',
-                      choices=['Standard', 'German Daisy', 'Belgian Daisy']
+                      choices=['Standard', 'German Daisy', 'Belgian Daisy', 'Test']
                       )
     ])['game_mode']
+
+    player= Player.BLACK
 
     if game_mode == 'Standard':
         game = InitialPosition.DEFAULT
     elif game_mode == 'German Daisy':
         game = InitialPosition.GERMAN_DAISY
-    else:
+    elif game_mode == 'Belgian Daisy':
         game = InitialPosition.BELGIAN_DAISY
+    else:
+        file = input("Enter the file name to test from: ")
+        board_state = Input_board.InputBoard(file)
+        game = board_state
+        if board_state.current_player == 'b':
+            player = Player.BLACK
+        else:
+            player = Player.WHITE
 
     player1 = inquirer.prompt([
         inquirer.List('player1',
@@ -340,4 +352,4 @@ if __name__ == '__main__':  # pragma: no cover
 
 
     # Run the game with these player instances and an initial game position
-    list(run_game(black, white, initial_position=game, move_limit=move_limit, time_limit=time_limit))
+    list(run_game(black, white, initial_position=game, move_limit=move_limit, time_limit=time_limit, player=player))
