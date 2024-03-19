@@ -86,30 +86,53 @@ def end_game(game):
     os._exit(1)
 
 
-def timer(time_event, controller_event, max_time, game):
+def timer(time_event, controller_event, max_time, game, time_record_obj):
     """
     countdown clock, pause
     """
     global time_message
     countDown = max_time
+
     while controller_event.is_set():
-        if countDown <= 1:
+        # if countDown <= 0:
             # time-up and end game
-            score = game.get_score()
-            winner = _get_winner(score)
-            if winner is not None:
-                print(f'Time is up. {winner.name} won!')
-            else:
-                print(f'Time is up. BLACK {score[0]} - WHITE {score[1]} result is tie')
-            os._exit(1)
+            # score = game.get_score()
+            # winner = _get_winner(score)
+            # if winner is not None:
+            #     print(f'Time is up. {winner.name} won!')
+            # else:
+            #     print(f'Time is up. BLACK {score[0]} - WHITE {score[1]} result is tie')
+            # os._exit(1)
 
         # countdown every second
         time_event.wait()  # control pause or resume
+        if time_record_obj['reset']:
+            countDown = max_time
+            time_record_obj['reset'] = False
+        if game.turn == player.BLACK:
+            time_record_obj["time_spend_p1"] += 1
+        else:
+            time_record_obj["time_spend_p2"] += 1
+        time_record_obj["agg_time_spend"] += 1
+
         sys.stdout.write(f"\r[Time left for {str(game.turn).split('.')[1]}: {int(countDown / 60)}:{countDown % 60:02d}]")
         time_message = f"{int(countDown / 60)}:{countDown % 60:02d}"  # for logging of time
-        sys.stdout.flush()
-        countDown -= 1
+
+        if countDown > 0:
+            # print(f"{game.turn} is flushing")
+            sys.stdout.flush()
+            countDown -= 1
+        else:
+            # time-up and just on hold, resume in next round
+            print(f"time for {str(game.turn).split('.')[1]} is up. Game is pause. "
+                  f"Possible penalty. You can still make one move.")
+            countDown = max_time
+            time_spend_current_round = 0
+            time_event.clear()
+
         time.sleep(1)
+
+
     # print("clock stop completely...")
 
 
@@ -141,12 +164,18 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
     # time feature
     ###### testing block
     lock_selection=False
-    # player 1 threads
-
+    # player 1
+    time_record = {
+        "time_spend_p1": 0,
+        "time_spend_p2": 0,
+        "agg_time_spend": 0,
+        "reset": False
+    }
     time_event1 = threading.Event()
     controller_event1 = threading.Event()
     controller_event1.set()
-    t1 = threading.Thread(target=timer, args=[time_event1, controller_event1, time_limit[0], game], daemon=True)
+    t1 = threading.Thread(target=timer, args=[time_event1, controller_event1, time_limit[0],
+                                              game, time_record], daemon=True)
     t1.start()
     c1 = threading.Thread(daemon=True)
     c1.start()
@@ -156,7 +185,8 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
     time_event2.set()
     controller_event2 = threading.Event()
     controller_event2.set()
-    t2 = threading.Thread(target=timer, args=[time_event2, controller_event2, time_limit[1], game], daemon=True)
+    t2 = threading.Thread(target=timer, args=[time_event2, controller_event2, time_limit[1],
+                                              game, time_record], daemon=True)
     t2.start()
     c2 = threading.Thread(daemon=True)
     c2.start()
@@ -177,18 +207,11 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
             try:
                 move = black.turn(game, moves_history, lock_selection) if game.turn is Player.BLACK else \
                     white.turn(game, moves_history, lock_selection)
-                # print(f"white:{Player.WHITE} ...back: {Player.BLACK}")
-                # reset the timer
-                # if not move == 'pause' and not move == 'resume':
-                #     controller_event1.clear()
-                #     t1.join()  # destroy the timer thread
-                #     controller_event1.set()
-                #     # start another timer for opponent
-                #     t1 = threading.Thread(target=timer, args=[time_event1, controller_event1, MAX_TIME, game])
-                #     t1.start()
 
-                # turn change create another timer for 2nd opponent on first move only
+
+                # turn change. Timer for 2nd opponent create on first move only
                 if not move == 'pause' and not move == 'resume':
+
                     # if turn is player1
                     if(game.turn == Player.WHITE):
                         time_event1.clear()
@@ -197,7 +220,7 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                     else:
                         time_event2.clear()
                         time_event1.set()
-
+                    time_record['reset'] = True
                 if move == 'undo':
                     if len(moves_history) == 0:
                         print('Cannot undo the first move\n')
@@ -246,6 +269,8 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                     white_move_count += 1
 
                 # print(f"test show: {time_message}")  # can show time in anywhere of the code
+                print(f"~~time spend 1: {time_record['time_spend_p1']}, "
+                      f"time spend 2: {time_record['time_spend_p2']} agg time: {time_record['agg_time_spend']}~~")
 
                 game.move(*move)
                 game.switch_player()
