@@ -110,9 +110,11 @@ def timer(time_event, controller_event, max_time, game, time_record_obj):
             countDown = max_time
             time_record_obj['reset'] = False
         if game.turn == player.BLACK:
+            time_record_obj["cur_spend_p1"] += 1
             time_record_obj["time_spend_p1"] += 1
         else:
             time_record_obj["time_spend_p2"] += 1
+            time_record_obj["cur_spend_p2"] += 1
         time_record_obj["agg_time_spend"] += 1
 
         sys.stdout.write(f"\r[Time left for {str(game.turn).split('.')[1]}: {int(countDown / 60)}:{countDown % 60:02d}]")
@@ -166,6 +168,8 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
     lock_selection=False
     # player 1
     time_record = {
+        "cur_spend_p1": 0,
+        "cur_spend_p2": 0,
         "time_spend_p1": 0,
         "time_spend_p2": 0,
         "agg_time_spend": 0,
@@ -216,10 +220,11 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                     if(game.turn == Player.WHITE):
                         time_event1.clear()
                         time_event2.set()
-                        # print("turn round")
+                        time_record["cur_spend_p1"] = 0
                     else:
                         time_event2.clear()
                         time_event1.set()
+                        time_record["cur_spend_p2"] = 0
                     time_record['reset'] = True
                 if move == 'undo':
                     if len(moves_history) == 0:
@@ -269,8 +274,11 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                     white_move_count += 1
 
                 # print(f"test show: {time_message}")  # can show time in anywhere of the code
-                print(f"~~time spend 1: {time_record['time_spend_p1']}, "
-                      f"time spend 2: {time_record['time_spend_p2']} agg time: {time_record['agg_time_spend']}~~")
+                print(f"~~current time spend Black: {time_record['cur_spend_p1']}, "
+                      f"agg time spend Black: {time_record['time_spend_p1']}, "
+                      f"current time spend White: {time_record['cur_spend_p2']}, "
+                      f"agg time spend White: {time_record['time_spend_p2']} "
+                      f"agg time all players: {time_record['agg_time_spend']}~~")
 
                 game.move(*move)
                 game.switch_player()
