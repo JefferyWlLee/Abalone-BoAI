@@ -342,23 +342,37 @@ class Game:
                     copy = deepcopy(self)
                     try:
                         copy.move(marbles, direction)
+
+                        if str(direction)[10:] == "NORTH_EAST":
+                            move_direction = 1
+                        elif str(direction)[10:] == "EAST":
+                            move_direction = 3
+                        elif str(direction)[10:] == "SOUTH_EAST":
+                            move_direction = 5
+                        elif str(direction)[10:] == "NORTH_WEST":
+                            move_direction = 7
+                        elif str(direction)[10:] == "WEST":
+                            move_direction = 9
+                        elif str(direction)[10:] == "SOUTH_WEST":
+                            move_direction = 11
+
                         if move_type == "i":
                             # For inline moves
-                            file.write(f"{move_type}-{str(marbles)[6:]}-{str(direction)[10:]}\n")
+                            file.write(f"{move_type}-{str(marbles)[6:]}-{move_direction}\n")
 
                             if black_turn:
-                                file3.write(f"{move_type}-{str(marbles)[6:]}-{str(direction)[10:]}\n")
+                                file3.write(f"{move_type}-{str(marbles)[6:]}-{move_direction}\n")
                             else:
-                                file2.write(f"{move_type}-{str(marbles)[6:]}-{str(direction)[10:]}\n")
+                                file2.write(f"{move_type}-{str(marbles)[6:]}-{move_direction}\n")
                         else:
                             # For broadside moves
                             marble1, marble2 = marbles
-                            file.write(f"{move_type}-{str(marble1)[6:]}-{str(marble2)[6:]}-{str(direction)[10:]}\n")
+                            file.write(f"{move_type}-{str(marble1)[6:]}-{str(marble2)[6:]}-{move_direction}\n")
 
                             if black_turn:
-                                file3.write(f"{move_type}-{str(marble1)[6:]}-{str(marble2)[6:]}-{str(direction)[10:]}\n")
+                                file3.write(f"{move_type}-{str(marble1)[6:]}-{str(marble2)[6:]}-{move_direction}\n")
                             else:
-                                file2.write(f"{move_type}-{str(marble1)[6:]}-{str(marble2)[6:]}-{str(direction)[10:]}\n")
+                                file2.write(f"{move_type}-{str(marble1)[6:]}-{str(marble2)[6:]}-{move_direction}\n")
                     except IllegalMoveException:
                         continue
                     yield marbles, direction
