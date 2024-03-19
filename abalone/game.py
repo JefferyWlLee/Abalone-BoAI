@@ -29,6 +29,8 @@ from utils import line_from_to, line_to_edge, neighbor
 
 colorama.init(autoreset=True)
 
+clear_file = True  # Flag to indicate whether the file has been cleared
+black_turn = True
 
 def _space_to_board_indices(space: Space) -> Tuple[int, int]:
     """Returns the corresponding index for `self.board` of a given `abalone.enums.Space`.
@@ -308,14 +310,63 @@ class Game:
         Yields:
             A tuple of 1. either one or a tuple of two `abalone.enums.Space`s and 2. a `abalone.enums.Direction`
         """
-        for marbles in self.generate_own_marble_lines():
-            for direction in Direction:
-                copy = deepcopy(self)
-                try:
-                    copy.move(marbles, direction)
-                except IllegalMoveException:
-                    continue
-                yield marbles, direction
+        # for marbles in self.generate_own_marble_lines():
+        #     for direction in Direction:
+        #         copy = deepcopy(self)
+        #         try:
+        #             copy.move(marbles, direction)
+        #             print(marbles, direction)
+        #         except IllegalMoveException:
+        #             continue
+        #         yield marbles, direction
+
+        global clear_file
+        global black_turn
+        with open("valid_moves.txt", "a") as file, open("valid_moves_black.txt", "a") as file2, open("valid_moves_white.txt", "a") as file3:
+            if clear_file:
+                file.truncate(0)  # Clear the file only once at the beginning of the game
+                file2.truncate(0)
+                file3.truncate(0)
+                clear_file = False  # Update the flag to indicate the file has been cleared
+
+            # Toggle between black and white
+            if black_turn:
+                file.write("BLACK\n")
+            else:
+                file.write("WHITE\n")
+            black_turn = not black_turn  # Toggle the flag
+
+            for marbles in self.generate_own_marble_lines():
+                move_type = "s" if isinstance(marbles, tuple) else "i"
+                for direction in Direction:
+                    copy = deepcopy(self)
+                    try:
+                        copy.move(marbles, direction)
+                        if move_type == "i":
+                            # For inline moves
+                            file.write(f"{move_type}-{str(marbles)[6:]}-{str(direction)[10:]}\n")
+
+                            if black_turn:
+                                file3.write(f"{move_type}-{str(marbles)[6:]}-{str(direction)[10:]}\n")
+                            else:
+                                file2.write(f"{move_type}-{str(marbles)[6:]}-{str(direction)[10:]}\n")
+                        else:
+                            # For broadside moves
+                            marble1, marble2 = marbles
+                            file.write(f"{move_type}-{str(marble1)[6:]}-{str(marble2)[6:]}-{str(direction)[10:]}\n")
+
+                            if black_turn:
+                                file3.write(f"{move_type}-{str(marble1)[6:]}-{str(marble2)[6:]}-{str(direction)[10:]}\n")
+                            else:
+                                file2.write(f"{move_type}-{str(marble1)[6:]}-{str(marble2)[6:]}-{str(direction)[10:]}\n")
+                    except IllegalMoveException:
+                        continue
+                    yield marbles, direction
+
+            if black_turn:
+                file3.write("-" * 30 + "\n")
+            else:
+                file2.write("-" * 30 + "\n")
 
     def undo(self) -> None:
         """Undoes the last move."""
