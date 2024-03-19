@@ -129,7 +129,6 @@ def timer(time_event, controller_event, max_time, game, time_record_obj):
             print(f"time for {str(game.turn).split('.')[1]} is up. Game is pause. "
                   f"Possible penalty. You can still make one move.")
             countDown = max_time
-            time_spend_current_round = 0
             time_event.clear()
 
         time.sleep(1)
