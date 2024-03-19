@@ -48,7 +48,7 @@ def _get_winner(score: tuple[int, int]) -> Union[Player, None]:
     return None
 
 
-def _format_move(turn: Player, move: Tuple[Union[Space, Tuple[Space, Space]], Direction], moves: int) -> str:
+def _format_move(turn: Player, move: Tuple[Union[Space, Tuple[Space, Space]], Direction], moves: int, time_record) -> str:
     """Formats a player's move as a string with a single line.
 
     Args:
@@ -58,20 +58,31 @@ def _format_move(turn: Player, move: Tuple[Union[Space, Tuple[Space, Space]], Di
     """
     marbles = [move[0]] if isinstance(move[0], Space) else line_from_to(*move[0])[0]
     marbles = map(lambda space: space.name, marbles)
-    return f'{time_message} | {moves + 1}: {turn.name} moves {", ".join(marbles)} in direction {move[1].name}'
+
+    if turn is Player.BLACK:
+        return (f'BLACK\n'
+                f'CURRENT MOVE TIME: {time_record["cur_spend_p1"]}s\n'
+                f'AGGREGATE TIME FOR BLACK: {time_record["time_spend_p1"]}s\n'
+                f'TOTAL TIME FOR BOTH PLAYERS: {time_record["agg_time_spend"]}s\n'
+                f'{moves + 1}: {turn.name} moves {", ".join(marbles)} in direction {move[1].name}\n')
+    else:
+        return (f'WHITE\n'
+                f'CURRENT MOVE TIME: {time_record["cur_spend_p2"]}s\n'
+                f'AGGREGATE TIME FOR WHITE: {time_record["time_spend_p2"]}s\n'
+                f'TOTAL TIME FOR BOTH PLAYERS: {time_record["agg_time_spend"]}s\n'
+                f'{moves + 1}: {turn.name} moves {", ".join(marbles)} in direction {move[1].name}\n')
 
 
-def write_move_history_to_files(game, move, moves_history, file, file2, file3, black_move_count, white_move_count):
-    file.write(_format_move(game.turn, move, len(moves_history) - 1))
+def write_move_history_to_files(game, move, moves_history, file, file2, file3, black_move_count, white_move_count, time_record):
+    file.write(_format_move(game.turn, move, len(moves_history) - 1, time_record))
     file.write('\n')
 
     if game.turn is Player.BLACK:
-        file2.write(_format_move(game.turn, move, black_move_count))
+        file2.write(_format_move(game.turn, move, black_move_count, time_record))
         file2.write('\n')
     else:
-        file3.write(_format_move(game.turn, move, white_move_count))
+        file3.write(_format_move(game.turn, move, white_move_count, time_record))
         file3.write('\n')
-
 
 def end_game(game):
     """
@@ -261,12 +272,12 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                     print("The game is resumed.\n")
                     continue
 
-                print(_format_move(game.turn, move, len(moves_history)), end='\n\n')
+                print(_format_move(game.turn, move, len(moves_history), time_record), end='\n\n')
 
                 moves_history.append(move)
 
                 write_move_history_to_files(game, move, moves_history, file, file2, file3, black_move_count,
-                                            white_move_count)
+                                            white_move_count, time_record)
 
                 if game.turn is Player.BLACK:
                     black_move_count += 1
