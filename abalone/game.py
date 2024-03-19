@@ -322,7 +322,7 @@ class Game:
 
         global clear_file
         global black_turn
-        with open("valid_moves.txt", "a") as file, open("valid_moves_black.txt", "a") as file2, open("valid_moves_white.txt", "a") as file3:
+        with open("valid_moves.txt", "a") as file, open("Test1.move", "a") as file2, open("Test2.move", "a") as file3:
             if clear_file:
                 file.truncate(0)  # Clear the file only once at the beginning of the game
                 file2.truncate(0)
