@@ -342,6 +342,7 @@ if __name__ == '__main__':  # pragma: no cover
     else:
         file = input("Enter the file name to test from: ")
         board_state = Input_board.InputBoard(file)
+        # exit(1)
         game = board_state
         if board_state.current_player == 'b':
             player = Player.BLACK

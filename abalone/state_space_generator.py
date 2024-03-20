@@ -68,14 +68,22 @@ def _marble_of_player(player: Player) -> Marble:
     return Marble.WHITE if player is Player.WHITE else Marble.BLACK
 
 
-class Game:
+class StateSpaceGenerator:
     """Represents the mutable state of an Abalone game."""
 
-    def __init__(self, initial_position: InitialPosition = InitialPosition.GERMAN_DAISY, first_turn: Player = Player.BLACK):
+    def __init__(self, initial_position: InitialPosition = InitialPosition.GERMAN_DAISY, first_turn: Player = Player.BLACK,
+                 file_names=("test.move", "test.board")):
         self.board = deepcopy(initial_position.value)
         self.previous_boards = []
         self.turn = first_turn
         self.result = ""
+        self.file_names = file_names
+        self.temp = deepcopy(self.board)
+        with open(self.file_names[0], "w") as file:
+            file.write("")
+        with open(self.file_names[1], "w") as file:
+            file.write("")
+
 
     def __str__(self) -> str:  # pragma: no cover
         board_lines = list(map(lambda line: ' '.join(map(str, line)), self.board))
@@ -140,7 +148,7 @@ class Game:
             raise Exception('Cannot set state of `Space.OFF`')
 
         x, y = _space_to_board_indices(space)
-        self.board[x][y] = marble
+        self.temp[x][y] = marble
 
     def get_marble(self, space: Space) -> Marble:
         """Returns the state of a `abalone.enums.Space`.
@@ -200,6 +208,48 @@ class Game:
             opp_marbles_num += 1
         return own_marbles_num, opp_marbles_num
 
+    def set_result(self) -> None:
+        self.result = ""
+        mapping = [["I5", "I6", "I7", "I8", "I9"],
+                   ["H4", "H5", "H6", "H7", "H8", "H9"],
+                   ["G3", "G4", "G5", "G6", "G7", "G8", "G9"],
+                   ["F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9"],
+                   ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9"],
+                   ["D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"],
+                   ["C1", "C2", "C3", "C4", "C5", "C6", "C7"],
+                   ["B1", "B2", "B3", "B4", "B5", "B6"],
+                   ["A1", "A2", "A3", "A4", "A5"]]
+
+        for i in range(0, len(self.temp)):
+            for j in range(0, len(self.temp[i])):
+                if self.temp[i][j] == Marble.WHITE:
+                    self.result += mapping[i][j] + "w,"
+                if self.temp[i][j] == Marble.BLACK:
+                    self.result += mapping[i][j] + "b,"
+
+    def write_inline(self, caboose: Space, direction: Direction) -> None:
+        board_lines = list(map(lambda line: ' '.join(map(str, line)), self.temp))
+        self.set_result()
+        if str(direction)[10:] == "NORTH_EAST":
+            move_direction = 1
+        elif str(direction)[10:] == "EAST":
+            move_direction = 3
+        elif str(direction)[10:] == "SOUTH_EAST":
+            move_direction = 5
+        elif str(direction)[10:] == "NORTH_WEST":
+            move_direction = 7
+        elif str(direction)[10:] == "WEST":
+            move_direction = 9
+        elif str(direction)[10:] == "SOUTH_WEST":
+            move_direction = 11
+
+        with open(self.file_names[0], "a") as file:
+            file.write(f"i-{str(caboose)[6:]}-{move_direction}\n")
+
+        with open(self.file_names[1], "a") as file:
+            file.write(str(self.result) + "\n")
+
+
     def move_inline(self, caboose: Space, direction: Direction) -> None:
         """Performs an inline move. An inline move is denoted by the trailing marble ("caboose") of a straight line of\
         marbles. Marbles of the opponent can only be pushed with an inline move (as opposed to a broadside move). This\
@@ -217,6 +267,7 @@ class Game:
             IllegalMoveException: Only lines that are shorter than the player's line can be pushed
             IllegalMoveException: Marbles must be pushed to an empty space or off the board
         """
+        self.temp = deepcopy(self.board)
 
         if self.get_marble(caboose) is not _marble_of_player(self.turn):
             raise IllegalMoveException('Only own marbles may be moved')
@@ -243,6 +294,28 @@ class Game:
 
         self.set_marble(line[own_marbles_num], _marble_of_player(self.turn))
         self.set_marble(caboose, Marble.BLANK)
+        self.write_inline(caboose, direction)
+
+    def write_broadside(self, boundaries: Tuple[Space, Space], direction: Direction) -> None:
+        self.set_result()
+        if str(direction)[10:] == "NORTH_EAST":
+            move_direction = 1
+        elif str(direction)[10:] == "EAST":
+            move_direction = 3
+        elif str(direction)[10:] == "SOUTH_EAST":
+            move_direction = 5
+        elif str(direction)[10:] == "NORTH_WEST":
+            move_direction = 7
+        elif str(direction)[10:] == "WEST":
+            move_direction = 9
+        elif str(direction)[10:] == "SOUTH_WEST":
+            move_direction = 11
+
+        with open(self.file_names[0], "a") as file:
+            file.write(f"b-{str(boundaries[0])[6:]}-{str(boundaries[1])[6:]}-{move_direction}\n")
+
+        with open(self.file_names[1], "a") as file:
+            file.write(str(self.result) + "\n")
 
     def move_broadside(self, boundaries: Tuple[Space, Space], direction: Direction) -> None:
         """Performs a broadside move. With a broadside move a line of adjacent marbles is moved sideways into empty\
@@ -262,6 +335,7 @@ class Game:
             IllegalMoveException: Only own marbles may be moved
             IllegalMoveException: With a broadside move, marbles can only be moved to empty spaces
         """
+        self.temp = deepcopy(self.board)
         if boundaries[0] is Space.OFF or boundaries[1] is Space.OFF:
             raise IllegalMoveException('Elements of boundaries must not be `Space.OFF`')
         marbles, direction1 = line_from_to(boundaries[0], boundaries[1])
@@ -280,6 +354,7 @@ class Game:
         for marble in marbles:
             self.set_marble(marble, Marble.BLANK)
             self.set_marble(neighbor(marble, direction), _marble_of_player(self.turn))
+        self.write_broadside(boundaries, direction)
 
     def move(self, marbles: Union[Space, Tuple[Space, Space]], direction: Direction) -> None:
         """Performs either an inline or a broadside move, depending on the arguments passed, by calling the according\
@@ -329,12 +404,12 @@ class Game:
         Yields:
             A tuple of 1. either one or a tuple of two `abalone.enums.Space`s and 2. a `abalone.enums.Direction`
         """
+
         for marbles in self.generate_own_marble_lines():
             for direction in Direction:
                 copy = deepcopy(self)
                 try:
                     copy.move(marbles, direction)
-                    print(marbles, direction)
                 except IllegalMoveException:
                     continue
                 yield marbles, direction

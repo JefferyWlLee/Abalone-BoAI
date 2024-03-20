@@ -1,6 +1,9 @@
 import os
+import re
 
-from enums import Marble
+from enums import Marble, Player
+from state_space_generator import StateSpaceGenerator
+
 
 
 class InputBoard:
@@ -79,4 +82,39 @@ class InputBoard:
             board[row_offset][col_index] = Marble.WHITE if color == 'w' else Marble.BLACK
 
         self.value = board
+        if current_player == 'b':
+            player = Player.BLACK
+        else:
+            player = Player.WHITE
+        file_names = self.get_file_names(file_path)
+        state_space_generator = StateSpaceGenerator(self, player, file_names)
+        list(state_space_generator.generate_legal_moves())
+
         return current_player
+
+
+
+    def get_file_names(self, input_filename):
+        """
+        generate appropriate file names.
+
+        :param filenames: the given filename.
+        """
+
+
+
+        # Extract the number from the filename using a regular expression
+        match = re.search(r'(\d+)', input_filename)
+        if match:
+            number = int(match.group(1))
+            # Increment the number
+            new_number = number
+
+            # Create new filenames as a tuple
+            filenames = (f"test{new_number}.move", f"test{new_number}.board")
+
+            return filenames
+
+
+
+
