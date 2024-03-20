@@ -334,7 +334,6 @@ class Game:
                 copy = deepcopy(self)
                 try:
                     copy.move(marbles, direction)
-                    print(marbles, direction)
                 except IllegalMoveException:
                     continue
                 yield marbles, direction
