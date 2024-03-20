@@ -78,6 +78,25 @@ class Game:
 
     def __str__(self) -> str:  # pragma: no cover
         board_lines = list(map(lambda line: ' '.join(map(str, line)), self.board))
+        result = ""
+        mapping = [["I5","I6","I7","I8","I9"],
+                   ["H4","H5","H6","H7","H8","H9"],
+                   ["G3","G4","G5","G6","G7","G8","G9"],
+                   ["F2","F3","F4","F5","F6","F7","F8","F9"],
+                   ["E1","E2","E3","E4","E5","E6","E7","E8","E9"],
+                   ["D1","D2","D3","D4","D5","D6","D7","D8"],
+                   ["C1","C2","C3","C4","C5","C6","C7"],
+                   ["B1","B2","B3","B4","B5","B6"],
+                   ["A1","A2","A3","A4","A5"]]
+
+        for i in range(0, len(self.board)):
+            for j in range(0, len(self.board[i])):
+                if self.board[i][j] == Marble.WHITE:
+                    result += mapping[i][j] + "w,"
+                if self.board[i][j] == Marble.BLACK:
+                    result += mapping[i][j] + "b,"
+        print(result)
+
         string = ''
         string += Style.DIM + '    I ' + Style.NORMAL + board_lines[0] + '\n'
         string += Style.DIM + '   H ' + Style.NORMAL + board_lines[1] + '\n'

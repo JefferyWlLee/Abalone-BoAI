@@ -222,7 +222,6 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                 move = black.turn(game, moves_history, lock_selection) if game.turn is Player.BLACK else \
                     white.turn(game, moves_history, lock_selection)
 
-
                 # turn change. Timer for 2nd opponent create on first move only
                 if not move == 'pause' and not move == 'resume':
 
