@@ -207,7 +207,11 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
     time_event2.clear() # pause the timer for player 2 when player 1 playing
     #####
 
-    with open("moves.txt", 'w') as file, open("black_moves.txt", 'w') as file2, open("white_moves.txt", 'w') as file3:
+    with (open("moves.txt", 'w') as file,
+          open("black_moves.txt", 'w') as file2,
+          open("white_moves.txt", 'w') as file3,
+          open("Test1.board", 'w') as file4,
+          open("Test2.board", 'w') as file5):
         while True:
             score = game.get_score()
             score_str = f'BLACK {score[0]} - WHITE {score[1]}'
@@ -279,8 +283,10 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
 
                 if game.turn is Player.BLACK:
                     black_move_count += 1
+                    file4.write(game.result + "\n")
                 else:
                     white_move_count += 1
+                    file5.write(game.result + "\n")
 
                 # print(f"test show: {time_message}")  # can show time in anywhere of the code
                 print(f"~~current time spend Black: {time_record['cur_spend_p1']}, "

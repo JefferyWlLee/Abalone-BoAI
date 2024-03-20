@@ -75,10 +75,11 @@ class Game:
         self.board = deepcopy(initial_position.value)
         self.previous_boards = []
         self.turn = first_turn
+        self.result = ""
 
     def __str__(self) -> str:  # pragma: no cover
         board_lines = list(map(lambda line: ' '.join(map(str, line)), self.board))
-        result = ""
+        self.result = ""
         mapping = [["I5","I6","I7","I8","I9"],
                    ["H4","H5","H6","H7","H8","H9"],
                    ["G3","G4","G5","G6","G7","G8","G9"],
@@ -92,10 +93,9 @@ class Game:
         for i in range(0, len(self.board)):
             for j in range(0, len(self.board[i])):
                 if self.board[i][j] == Marble.WHITE:
-                    result += mapping[i][j] + "w,"
+                    self.result += mapping[i][j] + "w,"
                 if self.board[i][j] == Marble.BLACK:
-                    result += mapping[i][j] + "b,"
-        print(result)
+                    self.result += mapping[i][j] + "b,"
 
         string = ''
         string += Style.DIM + '    I ' + Style.NORMAL + board_lines[0] + '\n'
