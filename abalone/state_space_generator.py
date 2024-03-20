@@ -220,12 +220,17 @@ class StateSpaceGenerator:
                    ["B1", "B2", "B3", "B4", "B5", "B6"],
                    ["A1", "A2", "A3", "A4", "A5"]]
 
-        for i in range(0, len(self.temp)):
+        for i in range(len(self.temp) - 1, -1, -1):
+            for j in range(0, len(self.temp[i])):
+                if self.temp[i][j] == Marble.BLACK:
+                    self.result += mapping[i][j] + "b,"
+
+        for i in range(len(self.temp) - 1, -1, -1):
             for j in range(0, len(self.temp[i])):
                 if self.temp[i][j] == Marble.WHITE:
                     self.result += mapping[i][j] + "w,"
-                if self.temp[i][j] == Marble.BLACK:
-                    self.result += mapping[i][j] + "b,"
+
+        self.result = self.result[:-1]
 
     def write_inline(self, caboose: Space, direction: Direction) -> None:
         board_lines = list(map(lambda line: ' '.join(map(str, line)), self.temp))
