@@ -298,6 +298,9 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                 game.move(*move)
                 game.switch_player()
 
+                file4.flush()
+                file5.flush()
+
                 moves_made += 1
                 if moves_made >= moves_limit:
                     print(f"Moves limit reached. {moves_limit} moves have been made.")
