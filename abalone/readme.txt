@@ -15,6 +15,15 @@ How to create the executable:
     step 4: run the command "pyinstaller --onefile --paths=/path/to/your/run_game.py run_game.py"
     step 5: navigate to the dist folder and run the executable
 
+How to test State Generator:
+    step 1: open terminal
+    step 2: navigate to the folder where the source code is located or the folder where the executable is located
+    step 3: run the command "python run_game.py" or double click the executable
+    step 4: select "test state generator" from the menu
+    step 5: enter file name of the file you want to test ex: "test1.input" ensure the file is in the same folder as the executable or the source code
+    step 6: the output will be in the same folder as the executable or the source code whichever you used.
+
+
     Instructions on how to play the game:
     1. user will be prompted with this menu to choose the inital layout. Use arrow keys to navigate and enter to select
 

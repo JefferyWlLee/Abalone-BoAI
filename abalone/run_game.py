@@ -327,7 +327,7 @@ if __name__ == '__main__':  # pragma: no cover
     game_mode = inquirer.prompt([
         inquirer.List('game_mode',
                       message='What type layout do you want?',
-                      choices=['Standard', 'German Daisy', 'Belgian Daisy', 'Test']
+                      choices=['Standard', 'German Daisy', 'Belgian Daisy', 'Test State Generator']
                       )
     ])['game_mode']
 

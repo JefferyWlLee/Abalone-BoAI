@@ -242,11 +242,11 @@ class StateSpaceGenerator:
         elif str(direction)[10:] == "SOUTH_EAST":
             move_direction = 5
         elif str(direction)[10:] == "NORTH_WEST":
-            move_direction = 7
+            move_direction = 11
         elif str(direction)[10:] == "WEST":
             move_direction = 9
         elif str(direction)[10:] == "SOUTH_WEST":
-            move_direction = 11
+            move_direction = 7
 
         with open(self.file_names[0], "a") as file:
             file.write(f"i-{str(caboose)[6:]}-{move_direction}\n")
@@ -310,14 +310,14 @@ class StateSpaceGenerator:
         elif str(direction)[10:] == "SOUTH_EAST":
             move_direction = 5
         elif str(direction)[10:] == "NORTH_WEST":
-            move_direction = 7
+            move_direction = 11
         elif str(direction)[10:] == "WEST":
             move_direction = 9
         elif str(direction)[10:] == "SOUTH_WEST":
-            move_direction = 11
+            move_direction = 7
 
         with open(self.file_names[0], "a") as file:
-            file.write(f"b-{str(boundaries[0])[6:]}-{str(boundaries[1])[6:]}-{move_direction}\n")
+            file.write(f"s-{str(boundaries[0])[6:]}-{str(boundaries[1])[6:]}-{move_direction}\n")
 
         with open(self.file_names[1], "a") as file:
             file.write(str(self.result) + "\n")
