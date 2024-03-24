@@ -31,6 +31,11 @@ from game import Game, IllegalMoveException
 from utils import line_from_to
 from human_player import HumanPlayer
 from random_player import RandomPlayer
+from ai_player_jeffrey import AiPlayerJeffrey
+from ai_player_keagan import AiPlayerKeagan
+from ai_player_brian import AiPlayerBrian
+from ai_player_kevin import AiPlayerKevin
+from ai_player_template import AiPlayerTemplate
 import Input_board
 
 
@@ -331,6 +336,14 @@ if __name__ == '__main__':  # pragma: no cover
                       )
     ])['game_mode']
 
+    player_list = {'Player':HumanPlayer(),
+                   'Computer(Random)':RandomPlayer(),
+                   'AI Jeffrey':AiPlayerJeffrey(),
+                   'AI Keagan':AiPlayerKeagan(),
+                   'AI Brian': AiPlayerBrian(),
+                   'AI Kevin': AiPlayerKevin(),
+                   'AI player template':AiPlayerTemplate()}
+
     player= Player.BLACK
 
     if game_mode == 'Standard':
@@ -352,27 +365,28 @@ if __name__ == '__main__':  # pragma: no cover
     player1 = inquirer.prompt([
         inquirer.List('player1',
                       message='Who do you want to be Black?',
-                      choices=['Player', 'Computer(Random)']
+                      choices=player_list
                       )
     ])['player1']
 
-    if player1 == 'Player':
-        black = HumanPlayer()
-    else:
-        black = RandomPlayer()
+    black = player_list[player1]
+    # if player1 == 'Player':
+    #     black = HumanPlayer()
+    # else:
+    #     black = RandomPlayer()
 
     player2 = inquirer.prompt([
         inquirer.List('player2',
                       message='Who do you want to be White?',
-                      choices=['Player', 'Computer(Random)']
+                      choices=player_list
                       )
     ])['player2']
 
-
-    if player2 == 'Player':
-        white = HumanPlayer()
-    else:
-        white = RandomPlayer()
+    white = player_list[player2]
+    # if player2 == 'Player':
+    #     white = HumanPlayer()
+    # else:
+    #     white = RandomPlayer()
 
 
 
