@@ -278,6 +278,9 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                     lock_selection = False
                     print("The game is resumed.\n")
                     continue
+                if move == 'stop':
+                    end_game(game)
+                    break
 
                 print(_format_move(game.turn, move, len(moves_history), time_record), end='\n\n')
 
