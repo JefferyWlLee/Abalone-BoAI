@@ -21,7 +21,8 @@
 from enum import Enum
 from traceback import format_exc
 from typing import Generator, List, Tuple, Union
-import time, threading, os
+import time, threading, os # will cancel
+from timer import Timer
 
 import inquirer
 
@@ -101,58 +102,6 @@ def end_game(game):
         print(f'Time is up. BLACK {score[0]} - WHITE {score[1]} result is even')
     os._exit(1)
 
-
-def timer(time_event, controller_event, max_time, game, time_record_obj):
-    """
-    countdown clock, pause
-    """
-    global time_message
-    countDown = max_time
-
-    while controller_event.is_set():
-        # if countDown <= 0:
-            # time-up and end game
-            # score = game.get_score()
-            # winner = _get_winner(score)
-            # if winner is not None:
-            #     print(f'Time is up. {winner.name} won!')
-            # else:
-            #     print(f'Time is up. BLACK {score[0]} - WHITE {score[1]} result is tie')
-            # os._exit(1)
-
-        # countdown every second
-        time_event.wait()  # control pause or resume
-        if time_record_obj['reset']:
-            countDown = max_time
-            time_record_obj['reset'] = False
-        if game.turn == player.BLACK:
-            time_record_obj["cur_spend_p1"] += 1
-            time_record_obj["time_spend_p1"] += 1
-        else:
-            time_record_obj["time_spend_p2"] += 1
-            time_record_obj["cur_spend_p2"] += 1
-        time_record_obj["agg_time_spend"] += 1
-
-        sys.stdout.write(f"\r[Time left for {str(game.turn).split('.')[1]}: {int(countDown / 60)}:{countDown % 60:02d}]")
-        time_message = f"{int(countDown / 60)}:{countDown % 60:02d}"  # for logging of time
-
-        if countDown > 0:
-            # print(f"{game.turn} is flushing")
-            sys.stdout.flush()
-            countDown -= 1
-        else:
-            # time-up and just on hold, resume in next round
-            print(f"time for {str(game.turn).split('.')[1]} is up. Game is pause. "
-                  f"Possible penalty. You can still make one move.")
-            countDown = max_time
-            time_event.clear()
-
-        time.sleep(1)
-
-
-    # print("clock stop completely...")
-
-
 def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, move_limit, time_limit
              , player, **kwargs) \
         -> Generator[Tuple[Game, List[Tuple[Union[Space, Tuple[Space, Space]], Direction]]], None, None]:
@@ -181,7 +130,6 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
     # time feature
     ###### testing block
     lock_selection=False
-    # player 1
     time_record = {
         "cur_spend_p1": 0,
         "cur_spend_p2": 0,
@@ -190,27 +138,12 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
         "agg_time_spend": 0,
         "reset": False
     }
-    time_event1 = threading.Event()
-    controller_event1 = threading.Event()
-    controller_event1.set()
-    t1 = threading.Thread(target=timer, args=[time_event1, controller_event1, time_limit[0],
-                                              game, time_record], daemon=True)
-    t1.start()
-    c1 = threading.Thread(daemon=True)
-    c1.start()
-    time_event1.set()
-    # player 2 threads
-    time_event2 = threading.Event()
-    time_event2.set()
-    controller_event2 = threading.Event()
-    controller_event2.set()
-    t2 = threading.Thread(target=timer, args=[time_event2, controller_event2, time_limit[1],
-                                              game, time_record], daemon=True)
-    t2.start()
-    c2 = threading.Thread(daemon=True)
-    c2.start()
-    time_event2.clear() # pause the timer for player 2 when player 1 playing
-    #####
+    t1 = Timer(time_limit[1], time_record, game)
+    t1.start_timer()
+
+    t2 = Timer(time_limit[0], time_record, game)
+    t2.start_timer()
+    t2.pause_timer() # pause white turn
 
     with (open("moves.txt", 'w') as file,
           open("black_moves.txt", 'w') as file2,
@@ -236,12 +169,12 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
 
                     # if turn is player1
                     if(game.turn == Player.WHITE):
-                        time_event1.clear()
-                        time_event2.set()
+                        t2.pause_timer()
+                        t1.restart_timer()
                         time_record["cur_spend_p1"] = 0
                     else:
-                        time_event2.clear()
-                        time_event1.set()
+                        t1.pause_timer()
+                        t2.restart_timer()
                         time_record["cur_spend_p2"] = 0
                     time_record['reset'] = True
                 if move == 'undo':
@@ -265,16 +198,16 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                     print('Undone last two moves\n')
                     continue
                 if move == 'pause':
-                    time_event1.clear()
-                    time_event2.clear()
+                    t1.pause_timer()
+                    t2.pause_timer()
                     lock_selection=True
                     print("The game has been paused!\n")
                     continue
                 if move == 'resume':
                     if (game.turn == Player.WHITE):
-                        time_event1.set()
+                        t1.restart_timer()
                     else:
-                        time_event2.set()
+                        t2.restart_timer()
                     lock_selection = False
                     print("The game is resumed.\n")
                     continue
@@ -406,11 +339,13 @@ if __name__ == '__main__':  # pragma: no cover
 
     while (True):
         try:
-            black_time_limit = int(input("Enter the time limit for Black in minutes: "))
-            white_time_limit = int(input("Enter the time limit for White in minutes: "))
+            black_time_limit = int(input("Enter the time limit for Black in seconds: "))
+            white_time_limit = int(input("Enter the time limit for White in seconds: "))
+            # black_time_limit = int(input("Enter the time limit for Black in minutes: "))
+            # white_time_limit = int(input("Enter the time limit for White in minutes: "))
             if white_time_limit > 0 or black_time_limit > 0:
-                white_time_limit = white_time_limit * 60
-                black_time_limit = black_time_limit * 60
+                # white_time_limit = white_time_limit * 60
+                # black_time_limit = black_time_limit * 60
                 time_limit = (white_time_limit, black_time_limit)
                 break
             else:
