@@ -200,7 +200,7 @@ class Game:
             opp_marbles_num += 1
         return own_marbles_num, opp_marbles_num
 
-    def move_inline(self, caboose: Space, direction: Direction) -> None:
+    def move_inline(self, caboose: Space, direction: Direction, createcopy: bool = True) -> None:
         """Performs an inline move. An inline move is denoted by the trailing marble ("caboose") of a straight line of\
         marbles. Marbles of the opponent can only be pushed with an inline move (as opposed to a broadside move). This\
         is possible if the opponent's marbles are directly in front of the line of the player's own marbles, and only\
@@ -209,6 +209,7 @@ class Game:
         Args:
             caboose: The `abalone.enums.Space` of the trailing marble of a straight line of up to three marbles.
             direction: The `abalone.enums.Direction` of movement.
+            createcopy: Whether to create a copy of the board before performing the move
 
         Raises:
             IllegalMoveException: Only own marbles may be moved
@@ -229,8 +230,8 @@ class Game:
 
         if own_marbles_num == len(line):
             raise IllegalMoveException('Own marbles must not be moved off the board')
-
-        self.previous_boards.append(deepcopy(self.board))
+        if createcopy:
+            self.previous_boards.append(deepcopy(self.board))
         # sumito
         if opp_marbles_num > 0:
             if opp_marbles_num >= own_marbles_num:
@@ -244,7 +245,7 @@ class Game:
         self.set_marble(line[own_marbles_num], _marble_of_player(self.turn))
         self.set_marble(caboose, Marble.BLANK)
 
-    def move_broadside(self, boundaries: Tuple[Space, Space], direction: Direction) -> None:
+    def move_broadside(self, boundaries: Tuple[Space, Space], direction: Direction, createcopy: bool = True) -> None:
         """Performs a broadside move. With a broadside move a line of adjacent marbles is moved sideways into empty\
         spaces. However, it is not possible to push the opponent's marbles. A broadside move is denoted by the two\
         outermost `abalone.enums.Space`s of the line to be moved and the `abalone.enums.Direction` of movement. With a\
@@ -276,12 +277,13 @@ class Game:
             destination_space = neighbor(marble, direction)
             if destination_space is Space.OFF or self.get_marble(destination_space) is not Marble.BLANK:
                 raise IllegalMoveException('With a broadside move, marbles can only be moved to empty spaces')
-        self.previous_boards.append(deepcopy(self.board))
+        if createcopy:
+            self.previous_boards.append(deepcopy(self.board))
         for marble in marbles:
             self.set_marble(marble, Marble.BLANK)
             self.set_marble(neighbor(marble, direction), _marble_of_player(self.turn))
 
-    def move(self, marbles: Union[Space, Tuple[Space, Space]], direction: Direction) -> None:
+    def move(self, marbles: Union[Space, Tuple[Space, Space]], direction: Direction, createcopy: bool = True) -> None:
         """Performs either an inline or a broadside move, depending on the arguments passed, by calling the according\
         method (`abalone.game.Game.move_inline` or `abalone.game.Game.move_broadside`).
 
@@ -296,9 +298,9 @@ class Game:
         """
 
         if isinstance(marbles, Space):
-            self.move_inline(marbles, direction)
+            self.move_inline(marbles, direction, createcopy=createcopy)
         elif isinstance(marbles, tuple) and isinstance(marbles[0], Space) and isinstance(marbles[1], Space):
-            self.move_broadside(marbles, direction)
+            self.move_broadside(marbles, direction, createcopy=createcopy)
         else:  # pragma: no cover
             # This exception should only be raised if the arguments are not passed according to the type hints. It is
             # only there to prevent a silent failure in such a case.

@@ -40,7 +40,7 @@ def _prompt_move_type(selection_lock) -> str:
         return inquirer.prompt([
             inquirer.List('move_type',
                           message='What type of move do you want to perform?',
-                          choices=['In-line', 'Broadside', 'undo', 'undo self', 'pause', 'resume']
+                          choices=['In-line', 'Broadside', 'undo', 'undo self', 'pause', 'resume', 'reset']
                           )
         ])['move_type']
 
@@ -127,6 +127,8 @@ class HumanPlayer(AbstractPlayer):
             return 'pause'
         if move_type == 'resume': #kevin add for resume test
             return 'resume'
+        if move_type == 'reset':
+            return 'reset'
 
 
         marble1 = _prompt_marble1(move_type, legal_moves)
