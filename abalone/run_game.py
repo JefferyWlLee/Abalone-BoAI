@@ -145,116 +145,116 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
     t2.start_timer()
     t2.pause_timer() # pause white turn
 
-    with (open("moves.txt", 'w') as file,
-          open("black_moves.txt", 'w') as file2,
-          open("white_moves.txt", 'w') as file3,
-          open("Test1.board", 'w') as file4,
-          open("Test2.board", 'w') as file5):
-        while True:
-            score = game.get_score()
-            score_str = f'BLACK {score[0]} - WHITE {score[1]}'
-            print(score_str, game, '', sep='\n')
+    # with (open("moves.txt", 'w') as file,
+    #       open("black_moves.txt", 'w') as file2,
+    #       open("white_moves.txt", 'w') as file3,
+    #       open("Test1.board", 'w') as file4,
+    #       open("Test2.board", 'w') as file5):
+    while True:
+        score = game.get_score()
+        score_str = f'BLACK {score[0]} - WHITE {score[1]}'
+        print(score_str, game, '', sep='\n')
 
-            winner = _get_winner(score)
-            if winner is not None:
-                print(f'{winner.name} won!')
-                break
+        winner = _get_winner(score)
+        if winner is not None:
+            print(f'{winner.name} won!')
+            break
 
-            try:
-                move = black.turn(game, moves_history, lock_selection) if game.turn is Player.BLACK else \
-                    white.turn(game, moves_history, lock_selection)
+        try:
+            move = black.turn(game, moves_history, lock_selection) if game.turn is Player.BLACK else \
+                white.turn(game, moves_history, lock_selection)
 
-                # turn change. Timer for 2nd opponent create on first move only
-                if not move == 'pause' and not move == 'resume':
+            # turn change. Timer for 2nd opponent create on first move only
+            if not move == 'pause' and not move == 'resume':
 
-                    # if turn is player1
-                    if(game.turn == Player.WHITE):
-                        t2.pause_timer()
-                        t1.restart_timer()
-                        time_record["cur_spend_p1"] = 0
-                    else:
-                        t1.pause_timer()
-                        t2.restart_timer()
-                        time_record["cur_spend_p2"] = 0
-                    time_record['reset'] = True
-                if move == 'undo':
-                    if len(moves_history) == 0:
-                        print('Cannot undo the first move\n')
-                        continue
-                    game.undo()
-                    moves_history.pop()
-                    moves_made -= 1
-                    print('Undone last move\n')
-                    continue
-                if move == 'undo self':
-                    if len(moves_history) < 2:
-                        print('Cannot undo the first move\n')
-                        continue
-                    game.undo()
-                    game.undo()
-                    moves_history.pop()
-                    moves_history.pop()
-                    moves_made -= 2
-                    print('Undone last two moves\n')
-                    continue
-                if move == 'pause':
-                    t1.pause_timer()
+                # if turn is player1
+                if(game.turn == Player.WHITE):
                     t2.pause_timer()
-                    lock_selection=True
-                    print("The game has been paused!\n")
-                    continue
-                if move == 'resume':
-                    if (game.turn == Player.WHITE):
-                        t1.restart_timer()
-                    else:
-                        t2.restart_timer()
-                    lock_selection = False
-                    print("The game is resumed.\n")
-                    continue
-                if move == 'stop':
-                    end_game(game)
-                    break
-
-                print(_format_move(game.turn, move, len(moves_history), time_record), end='\n\n')
-
-                moves_history.append(move)
-
-                write_move_history_to_files(game, move, moves_history, file, file2, file3, black_move_count,
-                                            white_move_count, time_record)
-
-                if game.turn is Player.BLACK:
-                    black_move_count += 1
-                    file4.write(game.result + "\n")
+                    t1.restart_timer()
+                    time_record["cur_spend_p1"] = 0
                 else:
-                    white_move_count += 1
-                    file5.write(game.result + "\n")
-
-                # print(f"test show: {time_message}")  # can show time in anywhere of the code
-                print(f"~~current time spend Black: {time_record['cur_spend_p1']}, "
-                      f"agg time spend Black: {time_record['time_spend_p1']}, "
-                      f"current time spend White: {time_record['cur_spend_p2']}, "
-                      f"agg time spend White: {time_record['time_spend_p2']} "
-                      f"agg time all players: {time_record['agg_time_spend']}~~")
-
-                game.move(*move)
-                game.switch_player()
-
-                file4.flush()
-                file5.flush()
-
-                moves_made += 1
-                if moves_made >= moves_limit:
-                    print(f"Moves limit reached. {moves_limit} moves have been made.")
-                    end_game(game)
-                    break
-                yield game, moves_history
-            except IllegalMoveException as ex:
-                print(f'{game.turn.name}\'s tried to perform an illegal move ({ex})\n')
+                    t1.pause_timer()
+                    t2.restart_timer()
+                    time_record["cur_spend_p2"] = 0
+                time_record['reset'] = True
+            if move == 'undo':
+                if len(moves_history) == 0:
+                    print('Cannot undo the first move\n')
+                    continue
+                game.undo()
+                moves_history.pop()
+                moves_made -= 1
+                print('Undone last move\n')
+                continue
+            if move == 'undo self':
+                if len(moves_history) < 2:
+                    print('Cannot undo the first move\n')
+                    continue
+                game.undo()
+                game.undo()
+                moves_history.pop()
+                moves_history.pop()
+                moves_made -= 2
+                print('Undone last two moves\n')
+                continue
+            if move == 'pause':
+                t1.pause_timer()
+                t2.pause_timer()
+                lock_selection=True
+                print("The game has been paused!\n")
+                continue
+            if move == 'resume':
+                if (game.turn == Player.WHITE):
+                    t1.restart_timer()
+                else:
+                    t2.restart_timer()
+                lock_selection = False
+                print("The game is resumed.\n")
+                continue
+            if move == 'stop':
+                end_game(game)
                 break
-            except:
-                print(f'{game.turn.name}\'s move caused an exception\n')
-                print(format_exc())
+
+            print(_format_move(game.turn, move, len(moves_history), time_record), end='\n\n')
+
+            moves_history.append(move)
+
+            # write_move_history_to_files(game, move, moves_history, file, file2, file3, black_move_count,
+            #                             white_move_count, time_record)
+
+            if game.turn is Player.BLACK:
+                black_move_count += 1
+                # file4.write(game.result + "\n")
+            else:
+                white_move_count += 1
+                # file5.write(game.result + "\n")
+
+            # print(f"test show: {time_message}")  # can show time in anywhere of the code
+            print(f"~~current time spend Black: {time_record['cur_spend_p1']}, "
+                    f"agg time spend Black: {time_record['time_spend_p1']}, "
+                    f"current time spend White: {time_record['cur_spend_p2']}, "
+                    f"agg time spend White: {time_record['time_spend_p2']} "
+                    f"agg time all players: {time_record['agg_time_spend']}~~")
+
+            game.move(*move)
+            game.switch_player()
+
+            # file4.flush()
+            # file5.flush()
+
+            moves_made += 1
+            if moves_made >= moves_limit:
+                print(f"Moves limit reached. {moves_limit} moves have been made.")
+                end_game(game)
                 break
+            yield game, moves_history
+        except IllegalMoveException as ex:
+            print(f'{game.turn.name}\'s tried to perform an illegal move ({ex})\n')
+            break
+        except:
+            print(f'{game.turn.name}\'s move caused an exception\n')
+            print(format_exc())
+            break
 
 
 if __name__ == '__main__':  # pragma: no cover
@@ -291,12 +291,12 @@ if __name__ == '__main__':  # pragma: no cover
     else:
         file = input("Enter the file name to test from: ")
         board_state = Input_board.InputBoard(file)
-        # exit(1)
-        game = board_state
-        if board_state.current_player == 'b':
-            player = Player.BLACK
-        else:
-            player = Player.WHITE
+        exit(1)
+        # game = board_state
+        # if board_state.current_player == 'b':
+        #     player = Player.BLACK
+        # else:
+        #     player = Player.WHITE
 
     player1 = inquirer.prompt([
         inquirer.List('player1',
