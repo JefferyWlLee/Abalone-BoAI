@@ -25,6 +25,11 @@ import time, threading, os
 
 import inquirer
 
+from ai_player_brian import AiPlayerBrian
+from ai_player_jeffrey import AiPlayerJeffrey
+from ai_player_keagan import AiPlayerKeagan
+from ai_player_kevin import AiPlayerKevin
+from ai_player_template import AiPlayerTemplate
 from abstract_player import AbstractPlayer
 from enums import Direction, Player, Space, InitialPosition, Marble
 from game import Game, IllegalMoveException
@@ -205,9 +210,8 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
     t2.start()
     c2 = threading.Thread(daemon=True)
     c2.start()
-    time_event2.clear() # pause the timer for player 2 when player 1 playing
+    time_event2.clear()  # pause the timer for player 2 when player 1 playing
     #####
-
 
     while True:
         score = game.get_score()
@@ -278,6 +282,9 @@ def run_game(black: AbstractPlayer, white: AbstractPlayer, initial_position, mov
                 white_move_count = 0
                 print("Game has been reset.\n")
                 continue
+            if move == 'stop':
+                end_game(game)
+                break
 
             print(_format_move(game.turn, move, len(moves_history), time_record), end='\n\n')
 
@@ -355,7 +362,7 @@ if __name__ == '__main__':  # pragma: no cover
     else:
         file = input("Enter the file name to test from: ")
         board_state = Input_board.InputBoard(file)
-        exit(1)
+        sys.exit(1)
         # game = board_state
         # if board_state.current_player == 'b':
         #     player = Player.BLACK
