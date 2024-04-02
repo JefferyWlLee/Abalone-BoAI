@@ -336,6 +336,10 @@ if __name__ == '__main__':  # pragma: no cover
     # if len(sys.argv) != 3:
     #     sys.exit(1)
 
+    if len(sys.argv) == 2:
+        #run game with Keagan and Kevin AI's
+            list(run_game(AiPlayerKeagan(), AiPlayerKevin(), initial_position=InitialPosition.DEFAULT, move_limit=99, time_limit=(99, 99), player=Player.BLACK))
+
     game_mode = inquirer.prompt([
         inquirer.List('game_mode',
                       message='What type layout do you want?',
