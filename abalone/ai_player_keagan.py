@@ -51,9 +51,10 @@ class AiPlayerKeagan(AbstractPlayer):
             print(legal_moves[0][0]) #Space.G5
             print(legal_moves[0][1]) #Direction.EAST
 
+            
+
         # our ai code is here....
         #1. minimax with alpha-beta pruning
-        self.minimax(game, 3, float('-inf'), float('inf'), True)
 
 
         #2. heuristic evaluation function
