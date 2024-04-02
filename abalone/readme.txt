@@ -12,7 +12,7 @@ How to create the executable:
     step 1: open terminal
     step 2: run pip install pyinstaller
     step 3: navigate to the folder where the source code is located
-    step 4: run the command "pyinstaller --onefile --paths=/path/to/your/run_game.py run_game.py"
+    step 4: run the command "pyinstaller --onefile -p C:/path/to/your/run_game.py run_game.py"
     step 5: navigate to the dist folder and run the executable
 
 How to test State Generator:
