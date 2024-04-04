@@ -125,7 +125,7 @@ def timer(time_event, controller_event, max_time, game, time_record_obj):
         if time_record_obj['reset']:
             countDown = max_time
             time_record_obj['reset'] = False
-        if game.turn == player.BLACK:
+        if game.turn == Player.BLACK:
             time_record_obj["cur_spend_p1"] += 1
             time_record_obj["time_spend_p1"] += 1
         else:
@@ -333,8 +333,9 @@ if __name__ == '__main__':  # pragma: no cover
     import importlib
     import sys
 
-    # if len(sys.argv) != 3:
-    #     sys.exit(1)
+    if len(sys.argv) == 2:
+        list(run_game(AiPlayerKevin(), HumanPlayer(), initial_position=InitialPosition.DEFAULT, move_limit=99, time_limit=(99,99), player=Player.BLACK))
+        sys.exit(0)
 
     game_mode = inquirer.prompt([
         inquirer.List('game_mode',
