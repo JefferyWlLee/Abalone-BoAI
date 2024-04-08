@@ -37,22 +37,30 @@ class AiPlayerKevin(AbstractPlayer):
         ai_move = ()
         max_depth = 1
 
-        # if len(game.previous_boards) < 7:
-        #     ai_move = self._aplpha_beta_search(game, max_depth, 1, "partial")
-            # print("strategy 1a")
+        # if len(game.previous_boards) < 20:
         if len(game.previous_boards) < 20:
-            ai_move = self._aplpha_beta_search(game, max_depth, 1, "all")
-            # print("strategy 1b")
+            # ai_move = self._aplpha_beta_search(game, max_depth, 1, "all")
+            ai_move = self._aplpha_beta_search(game, max_depth, 1, "inline")
+            # print("strategy 1")
         else:
-            ai_move = self._aplpha_beta_search(game, max_depth, 2, "all")
+            ai_move = self._aplpha_beta_search(game, 0, 2, "inline")
             # print("strategy 2")
+
+
+        # ###### temp use attack
+        # ai_move = self._aplpha_beta_search(game, 0, 2, "inline")
+        # print("strategy 2")
+        # #######
+
         return ai_move
 
     def _aplpha_beta_search(self, game, max_depth, strategy, tactic):
         tmp_score_move_list = []
 
         vgame = deepcopy(game)
-        move_list = self._sort_moves(list(game.generate_legal_moves()), tactic)
+        game.previous_scores = []
+        game.previous_scores.append(game.get_score())
+        move_list = self._sort_moves(list(game.generate_legal_moves()), game, tactic)
         for move in move_list:
             vgame = self._next_virtual_game(game, move)
             # score = self._max_value(vgame, move, max_depth, strategy, alpha=-math.inf, beta=math.inf)
@@ -76,7 +84,7 @@ class AiPlayerKevin(AbstractPlayer):
 
         # for a in tmp_score_move_list:
         #     print(a)
-        # print(f"best score: {current_score} - best move: {best_move}")
+        print(f"best score: {current_score} - best move: {best_move}")
         return best_move
 
     def _max_value(self, vgame, move, max_depth, strategy, tactic, alpha, beta):
@@ -88,8 +96,9 @@ class AiPlayerKevin(AbstractPlayer):
 
         max_depth -= 1
         score = -math.inf
+        vgame.previous_scores.append(vgame.get_score())
 
-        next_move_list = self._sort_moves(list(vgame.generate_legal_moves()), tactic)
+        next_move_list = self._sort_moves(list(vgame.generate_legal_moves()), vgame, tactic)
 
         #minmax search
         for move in next_move_list:
@@ -115,8 +124,9 @@ class AiPlayerKevin(AbstractPlayer):
 
         max_depth -= 1
         score = math.inf
+        vgame.previous_scores.append(vgame.get_score())
 
-        next_move_list = self._sort_moves(list(vgame.generate_legal_moves()), tactic)
+        next_move_list = self._sort_moves(list(vgame.generate_legal_moves()), vgame, tactic)
 
         # minmax search
         for move in next_move_list:
@@ -215,10 +225,68 @@ class AiPlayerKevin(AbstractPlayer):
             return sum
 
         elif strategy_number == 2:
+            # NOTE: EVEN depth=0, THE MOVE IS ALREADY MADE. AND ANY MORE DEPTH IS MOVING FURTHER!
+
             # hyper-aggressive, score base on push a marble to side
             # shortest distance to opponent two or smaller marbles
+
             score = 0
-            if isinstance(move[0], tuple):
+
+            # 1. right before any moves, if current move can kill. This is the first priority amoung all
+            if (game.turn == Player.BLACK and game.previous_scores[0][1] > game.get_score()[1]) or \
+                    (game.turn == Player.WHITE and game.previous_scores[0][0] > game.get_score()[0]):
+                # there is a score differnece meaning an opponent marble is killed by this move
+                score += 10000
+                return score
+
+            # 2. Second priority, arrange score according to how close the opponent marble to being kill
+            # ANALYSIZING ON THE MOVE OF CURRENT DEPTH
+            # if the opponent marble will be killed by next round score +6000
+            # if the opponent marble will be killed by two round score +3000
+            # if require three round score + 1500 (balance with defence strategy?)
+            # if require four round, it is just random pushing marbles around, no addition score
+
+            # if the move is 2 marbles only, deduct 1000. (3 marble move is more valuable than 2 marble moves
+            if not isinstance(move[0], tuple):
+                # check if the next position of the move contain opponent marble
+                third_rim = ["G5", "G6", "G7", "F4", "F7", "E3", "E7", "D3", "D6", "C3", "C4", "C5"]
+                inner_rim = ["H5", "H6", "H7", "H8", "B2", "B3", "B4", "B5", "G4", "F3", "E2",
+                             "D2", "C2", "G8", "F8", "E8", "D7", "C6"]
+                outer_rim = ["I5", "I6", "I7", "I8", "I9", "A1", "A2", "A3", "A4", "A5",
+                             "H4", "G3", "F2", "E1", "D1", "C1", "B1", "H9", "G9", "F9", "E9", "D8", "C7", "B6"]
+
+                line = line_to_edge(move[0], move[1])
+                own_marbles_num, opp_marbles_num = game._inline_marbles_nums(line[1:])
+                if opp_marbles_num > 0:
+
+                    # check if our marble outnumber opponent marble
+                    if own_marbles_num > opp_marbles_num:
+                        # check whether there is a blocking marble on the way, if not, this is a valuable sumito move
+                        # example: after first white, there is another black on the road
+
+                        # First find the empty space right after the opponent marble
+                        possible_space_to_push = neighbor(line[own_marbles_num + opp_marbles_num-1], move[1])
+                        # if possible_space_to_push is not None:
+                        #     # case when it is not Space.OFF
+                        #     score += 1000
+                        if possible_space_to_push.name in third_rim:
+                            score += 1500
+                        if possible_space_to_push.name in inner_rim:
+                            score += 3000
+                        if possible_space_to_push.name in outer_rim:
+                            score += 6000
+
+                        if opp_marbles_num > 1:
+                            score += 500
+
+                        # two marbles move reduction
+                        if own_marbles_num < 3:
+                            score -= 1000
+                    else:
+                        # A space in between but meaningless move, it shouldn't be choosen
+                        score -= 999
+
+            else:
                 # boardside moves
                 distance_to_opp_marble = 99
                 have_oppoment_marble = False
@@ -240,59 +308,49 @@ class AiPlayerKevin(AbstractPlayer):
                     score = (10 - distance_to_opp_marble) * 100
                 else:
                     score = -100
-            else:
-                # inline move
-                # sumito possibility - higher priority for move
-                # check if the next position of the move contain opponent marble
-                inner_rim = ["H5", "H6", "H7", "H8", "B2", "B3", "B4", "B5", "G4", "F3", "E2",
-                             "D2", "C2", "G8", "F8", "E8", "D7", "C6"]
-                outer_rim = ["I5", "I6", "I7", "I8", "I9", "A1", "A2", "A3", "A4", "A5",
-                             "H4", "G3", "F2", "E1", "D1", "C1","B1", "H9", "G9", "F9", "E9", "D8", "C7", "B6"]
 
-                line = line_to_edge(move[0], move[1])
-                own_marbles_num, opp_marbles_num = game._inline_marbles_nums(line)
-                if opp_marbles_num > 0:
-                    # check if our marble outnumber opponent marble
-                    if own_marbles_num >= opp_marbles_num:
-                        possible_space_to_push = neighbor(line[own_marbles_num + opp_marbles_num - 1], move[1])
-                        if possible_space_to_push is not None:
-                            score += 1000
-                        if possible_space_to_push.value in inner_rim:
-                            score += 1000
-                        if possible_space_to_push.value in outer_rim:
-                            score += 3000
-                        if possible_space_to_push.value is Space.OFF:
-                            score += 10000
+            if score <= 0:
+                score = self.heuristic_strategies(1, move, game)
 
-            # print(f"score: {score} - {move}")
             return score
 
         else:
             pass
 
-    def _sort_moves(self, moves, tactic="partial"):
-        sorted_moves = []
+    def _sort_moves(self, moves, game, tactic="partial"):
         boardside_moves = []
-        inline_moves = []
+        inline_multiple_marbles_moves = []
+        single_marble_moves = []
 
         for legal_move in moves:
             if isinstance(legal_move[0], tuple):
                 # (<Space.C4: ('C', '4')>, <Space.C5: ('C', '5')>), <Direction.NORTH_WEST: 'north-west'>)
-                sorted_moves.append(legal_move)
+                # boardside move only
                 boardside_moves.append(legal_move)
-        for legal_move in moves:
-            if not isinstance(legal_move[0], tuple):
+
+            else:
+                own_marbles_num, null = game._inline_marbles_nums(line_to_edge(legal_move[0], legal_move[1]))
+                if isinstance(legal_move[0], Space) and own_marbles_num > 1:
+                    # baseline move of 2 or 3 marbles. Possible Sumito moves
+                    inline_multiple_marbles_moves.append(legal_move)
+
+                else:
+                    # single marble moves
+                    single_marble_moves.append(legal_move)
+
+        # for legal_move in moves:
+        #     if not isinstance(legal_move[0], tuple):
                 # (<Space.A1: ('A', '1')>, <Direction.NORTH_EAST: 'north-east'>
-                sorted_moves.append(legal_move)
-                inline_moves.append(legal_move)
+                # sorted_moves.append(legal_move)
+                # inline_moves.append(legal_move)
 
         if tactic == "partial":
             # return boardside_moves[0:5]
-            return boardside_moves
+            return boardside_moves + single_marble_moves
         elif tactic == "inline":
-            return inline_moves
+            return inline_multiple_marbles_moves + single_marble_moves
         else:
-            return sorted_moves
+            return inline_multiple_marbles_moves + boardside_moves + single_marble_moves
 
     def _next_virtual_game(self, game, move):
             vitual_board = deepcopy(game)
