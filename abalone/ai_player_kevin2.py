@@ -82,8 +82,8 @@ class AiPlayerKevin(AbstractPlayer):
         best_move = move_set['move']
         current_score = move_set['score']
 
-        # for a in tmp_score_move_list:
-        #     print(a)
+        for a in tmp_score_move_list:
+            print(a)
         print(f"best score: {current_score} - best move: {best_move}")
         return best_move
 
