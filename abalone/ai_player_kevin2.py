@@ -2,8 +2,10 @@
 
 
 """This module is a template for create AI player"""
+from enum import Enum
 from random import choice
 from copy import deepcopy
+import time
 from typing import List, Tuple, Union
 
 from abstract_player import AbstractPlayer
@@ -12,6 +14,183 @@ from game import Game
 from utils import line_from_to, line_to_edge, neighbor
 import math
 
+class AiGame:
+    def __init__(self, game: Union[Game, List], current_player: Player) -> None:
+        # print(type(game))
+        if (type(game) == Game):
+            self.array = game.board
+        else:
+            self.array = game
+
+        self.current_player = current_player
+
+        self.current_marble = self.get_marble(current_player)
+        self.opponent_marble = self.get_marble(self.get_other_player())
+
+        self.opponent = self.get_other_player()
+
+        # array looks like this
+        # [
+        #     [ M, M, M, M, M ],
+        #     [ M, M, M, M, M, M ],
+        #     [ M, M, M, M, M, M, M ],
+        #     [ M, M, M, M, M, M, M, M ],
+        #     [ M, M, M, M, M, M, M, M, M ],
+        #     [ M, M, M, M, M, M, M, M ],
+        #     [ M, M, M, M, M, M, M ],
+        #     [ M, M, M, M, M, M ],
+        #     [ M, M, M, M, M ]
+        # ]
+        self.current_player = current_player
+
+    def get_other_player(self):
+        if self.current_player == Player.BLACK:
+            return Player.WHITE
+        else:
+            return Player.BLACK
+        
+    def get_marble(self, player):
+        if player == Player.BLACK:
+            return Marble.BLACK
+        else:
+            return Marble.WHITE
+
+    def generate_marble_moves(self, space: Tuple):
+        legal_moves = []
+        row, col = space
+
+        spaces = (
+            (0,0), (0,1), (0,2), (0,3), (0,4),
+            (1,0), (1,1), (1,2), (1,3), (1,4), (1,5),
+            (2,0), (2,1), (2,2), (2,3), (2,4), (2,5), (2,6),
+            (3,0), (3,1), (3,2), (3,3), (3,4), (3,5), (3,6), (3,7),
+            (4,0), (4,1), (4,2), (4,3), (4,4), (4,5), (4,6), (4,7), (4,8),
+            (5,0), (5,1), (5,2), (5,3), (5,4), (5,5), (5,6), (5,7),
+            (6,0), (6,1), (6,2), (6,3), (6,4), (6,5), (6,6),
+            (7,0), (7,1), (7,2), (7,3), (7,4), (7,5),
+            (8,0), (8,1), (8,2), (8,3), (8,4))
+
+        modifications = [(-1, -1), (0, -1), (-1, 0), (1, 0), (-1, 1), (0, 1)]
+
+        for mod in modifications:
+            #check if the next space is on the board (M*)
+            # print(f"row: {row}, col: {col}, mod: {mod}")
+            if (row+mod[0], col+mod[1]) in spaces:
+                # print("test")
+                # check if empty, then move (M_)
+                if self.array[row+mod[0]][col+mod[1]] == Marble.BLANK:
+                    pass
+                #     array = deepcopy(self.array)
+                #     array[row+mod[0]][col+mod[1]] = self.current_marble
+                #     array[row][col] = Marble.BLANK
+                #     # print("test1")
+                #     legal_moves.append(array)
+
+                # # check if second own color marble (MM)
+                elif self.array[row+mod[0]][col+mod[1]] == self.current_marble:
+                #     # print("test2")
+                #     #broadside move the two to empty, don't create dups, maybe call a function for this
+
+                #     # check if the next space is on the board (MM*)
+                    if (row+mod[0]*2, col+mod[1]*2) in spaces:
+                #         #check if the next marble is empty (MM_)
+                        if self.array[row+mod[0]*2][col+mod[1]*2] == Marble.BLANK:
+                            pass
+                #             array = deepcopy(self.array)
+                #             array[row+mod[0]*2][col+mod[1]*2] = self.current_marble
+                #             array[row+mod[0]][col+mod[1]] = self.current_marble
+                #             array[row][col] = Marble.BLANK
+                #             # print("test2")
+                #             legal_moves.append(array)
+                #         #check if the next marble contains an enemy marble (MME)
+                #         elif self.array[row+mod[0]*2][col+mod[1]*2] == self.opponent:
+                #             #check if we can push the enemy marble to another spot on the board (MME_)
+                #             if (row+mod[0]*3, col+mod[1]*3) in spaces and self.array[row+mod[0]*3][col+mod[1]*3] == Marble.BLANK:
+                #                 array = deepcopy(self.array)
+                #                 array[row+mod[0]*3][col+mod[1]*3] = self.opponent
+                #                 array[row+mod[0]*2][col+mod[1]*2] = self.current_marble
+                #                 array[row+mod[0]][col+mod[1]] = self.current_marble
+                #                 array[row][col] = Marble.BLANK
+                #                 # print("test3")
+                #                 legal_moves.append(array)
+                #             #check if we can push the enemy marble off the board (MMEX)
+                #             elif (row+mod[0]*3, col+mod[1]*3) not in spaces:
+                #                 array = deepcopy(self.array)
+                #                 array[row+mod[0]*2][col+mod[1]*2] = self.current_marble
+                #                 array[row+mod[0]][col+mod[1]] = self.current_marble
+                #                 array[row][col] = Marble.BLANK
+                #                 # print("test4")
+                #                 legal_moves.append(array)
+                        #check if third own color marble (MMM)
+                        elif self.array[row+mod[0]*2][col+mod[1]*2] == self.current_marble:
+                            #broadsidemove the three to empty, don't create dups, maybe call a function for this
+
+                            # check if we can consider the next marble in direction (MMM*)
+                            if (row+mod[0]*3, col+mod[1]*3) in spaces:
+                                #check if the next marble is empty (MMM_)
+                                if self.array[row+mod[0]*3][col+mod[1]*3] == Marble.BLANK:
+                                    array = deepcopy(self.array)
+                                    array[row+mod[0]*3][col+mod[1]*3] = self.current_marble
+                                    array[row+mod[0]*2][col+mod[1]*2] = self.current_marble
+                                    array[row+mod[0]][col+mod[1]] = self.current_marble
+                                    array[row][col] = Marble.BLANK
+                                    # print("test5")
+                                    legal_moves.append(array)
+                                #check if the next marble contains an enemy marble (MMME)
+                                elif self.array[row+mod[0]*3][col+mod[1]*3] == self.opponent:
+                                    #check if the marble after 3 friendly's and an enemy exists (MMME*)
+                                    if (row+mod[0]*4, col+mod[1]*4) in spaces:
+                                        #check if it is empty (MMME_)
+                                        if self.array[row+mod[0]*4][col+mod[1]*4] == Marble.BLANK:
+                                            array = deepcopy(self.array)
+                                            array[row+mod[0]*4][col+mod[1]*4] = self.opponent
+                                            array[row+mod[0]*3][col+mod[1]*3] = self.current_marble
+                                            array[row+mod[0]*2][col+mod[1]*2] = self.current_marble
+                                            array[row+mod[0]][col+mod[1]] = self.current_marble
+                                            array[row][col] = Marble.BLANK
+                                            # print("test6")
+                                            legal_moves.append(array)
+                                        #check if it is another enemy marble and the marble after that is empty (MMMEE_)
+                                        elif self.array[row+mod[0]*4][col+mod[1]*4] == self.opponent and (row+mod[0]*5, col+mod[1]*5) in AiSpace.spaces and self.array[row+mod[0]*5][col+mod[1]*5] == Marble.BLANK:
+                                            array = deepcopy(self.array)
+                                            array[row+mod[0]*5][col+mod[1]*5] = self.opponent
+                                            array[row+mod[0]*4][col+mod[1]*4] = self.opponent
+                                            array[row+mod[0]*3][col+mod[1]*3] = self.current_marble
+                                            array[row+mod[0]*2][col+mod[1]*2] = self.current_marble
+                                            array[row+mod[0]][col+mod[1]] = self.current_marble
+                                            array[row][col] = Marble.BLANK
+                                            # print("test7")
+                                            legal_moves.append(array)
+                                    #check if we can push the enemy marble off the board (MMMEEX)
+                                    elif (row+mod[0]*4, col+mod[1]*4) not in spaces:
+                                        array = deepcopy(self.array)
+                                        array[row+mod[0]*3][col+mod[1]*3] = self.current_marble
+                                        array[row+mod[0]*2][col+mod[1]*2] = self.current_marble
+                                        array[row+mod[0]][col+mod[1]] = self.current_marble
+                                        array[row][col] = Marble.BLANK
+                                        # print("test8")
+                                        legal_moves.append(array)
+
+        # print(legal_moves)
+        return legal_moves
+
+                
+
+    def generate_legal_moves(self):
+        legal_moves = [] #list of boards
+        for row in range(len(self.array)):
+            for col in range(len(self.array[row])):
+                # print(f"row: {row}, col: {col}")
+                if self.array[row][col] == self.current_marble:
+                    legal_moves += self.generate_marble_moves((row, col))
+                    # self.generate_two_marble_moves_inline((row, col)) +
+                    # self.generate_two_marble_moves_broadside((row, col)) +
+                    # self.generate_three_marble_moves_inline((row, col)) +
+                    # self.generate_three_marble_moves_broadside((row, col)))
+
+
+
+        return legal_moves
 
 
 class AiPlayerKevin(AbstractPlayer):
@@ -25,38 +204,29 @@ class AiPlayerKevin(AbstractPlayer):
 
     def turn(self, game: Game, moves_history: List[Tuple[Union[Space, Tuple[Space, Space]], Direction]], selection_lock: bool) \
             -> Tuple[Union[Space, Tuple[Space, Space]], Direction]:
+        
+        game = AiGame(game)
 
         return self._game_analytic(game)
-
-        # ai_move = self._aplpha_beta_search(game, max_depth, 1, "all")
-        # ai_move = self._aplpha_beta_search(game, max_depth, 2, "all")
 
 
     def _game_analytic(self, game):
 
-        ai_move = ()
         max_depth = 1
 
-        # if len(game.previous_boards) < 7:
-        #     ai_move = self._aplpha_beta_search(game, max_depth, 1, "partial")
-            # print("strategy 1a")
-        if len(game.previous_boards) < 20:
-            ai_move = self._aplpha_beta_search(game, max_depth, 1, "all")
-            # print("strategy 1b")
-        else:
-            ai_move = self._aplpha_beta_search(game, max_depth, 2, "all")
-            # print("strategy 2")
-        return ai_move
+        ai_move = self._alpha_beta_search(game, max_depth)
 
-    def _aplpha_beta_search(self, game, max_depth, strategy, tactic):
+        return game.create_formatted_move(game, ai_move)
+
+    def _alpha_beta_search(self, game, max_depth):
         tmp_score_move_list = []
 
         vgame = deepcopy(game)
-        move_list = self._sort_moves(list(game.generate_legal_moves()), tactic)
+        move_list = self._sort_moves(list(game.generate_legal_moves()))
         for move in move_list:
             vgame = self._next_virtual_game(game, move)
             # score = self._max_value(vgame, move, max_depth, strategy, alpha=-math.inf, beta=math.inf)
-            score = self._max_value(vgame, move, max_depth, strategy, tactic, alpha=-math.inf, beta=math.inf)
+            score = self._max_value(vgame, move, max_depth, alpha=-math.inf, beta=math.inf)
 
             # print(f"{score}: {move}")
             # del vgame
@@ -72,7 +242,6 @@ class AiPlayerKevin(AbstractPlayer):
         higest_score_list = list(filter(lambda y: y['score'] == max_score, tmp_score_move_list))
         move_set = choice(higest_score_list)
         best_move = move_set['move']
-        current_score = move_set['score']
 
         # for a in tmp_score_move_list:
         #     print(a)
@@ -136,7 +305,7 @@ class AiPlayerKevin(AbstractPlayer):
 
     def heuristic_strategies(self, strategy_number, move, game):
 
-        if strategy_number == 1:
+        # if strategy_number == 1:
             # defense first, score base on position
             # return score of each space
             score = {
@@ -154,28 +323,6 @@ class AiPlayerKevin(AbstractPlayer):
             # boardside move, score are the sum of all marbles. For inline move, there is only one tuple
             sum = 0
 
-            # tmp_sum=0
-            # space_name = ['I', 'H', 'G', 'F', 'E', 'D', 'C', 'B', 'A']
-            # for i, value in enumerate(game.board):
-            #     for j in value:
-            #             print(j)
-            #         # if game.board[i][j].name == 'BLACK' or game.board[i][j].name == 'WHITE':
-            #         #     space_modifier = j
-            #         #     if space_name[i] == 'F':2
-            #         #         space_modifier = j + 1
-            #         #     elif space_name[i] == 'G':
-            #         #         space_modifier = j + 2
-            #         #     elif space_name[i] == 'H':
-            #         #         space_modifier = j + 3
-            #         #     elif space_name[i] == 'I':
-            #         #         space_modifier = j + 4
-
-            #             tmp_sum += score[space_name[i] + str(j)]
-
-                        # print(f"{space_name[i] + str(space_modifier+1)}: {score[space_name[i] + str(space_modifier+1)]}")
-
-                        # tmp_sum += score[space_name[i] + str(j)]
-
             for space in enumerate(Space):
                 # print(type(space[1]))
                 # print(str(space[1].name))
@@ -188,36 +335,12 @@ class AiPlayerKevin(AbstractPlayer):
                 # print(score[test])
                 # tmp_sum += score[str(space[1].name)]
 
-
-
-            # if isinstance(move[0], tuple):
-            #     for marble in move[0]:
-            #         # sum += score[marble.value[0] + marble.value[1]]
-            #         sum += score[neighbor(marble, move[1]).name]
-
-            #         # extra function to push marbles on rim to move to center
-            #         # if game.turn == Player.BLACK and (marble.value[0] == 'A' or marble.value[0] == 'B'):
-            #         #     sum += 80
-            #         # elif game.turn == Player.WHITE and (marble.value[0] == 'I' or marble.value[0] == 'H'):
-            #         #     sum += 80
-            # else:
-            #     sum = score[neighbor(move[0], move[1]).name]
-            #     if game.turn == Player.BLACK and (move[0].value[0] == 'A' or move[0].value[0] == 'B'):
-            #         if move[1].value == 'north-east' or move[1].value == 'north-west':
-            #             sum += 1
-            #     elif game.turn == Player.WHITE and (move[0].value[0] == 'I' or move[0].value[0] == 'H'):
-            #         if move[1].value == 'south-east' or move[1].value == 'south-west':
-            #             sum += 1
-
-
-
             # print(f"[STRATEGY] sum: {sum}, move: {move}")
-            return sum
+            # return sum
 
-        elif strategy_number == 2:
             # hyper-aggressive, score base on push a marble to side
             # shortest distance to opponent two or smaller marbles
-            score = 0
+            # score = 0
             if isinstance(move[0], tuple):
                 # boardside moves
                 distance_to_opp_marble = 99
@@ -237,9 +360,9 @@ class AiPlayerKevin(AbstractPlayer):
 
                 if have_oppoment_marble:
                     # print(distance_to_opp_marble)
-                    score = (10 - distance_to_opp_marble) * 100
+                    sum = (10 - distance_to_opp_marble) * 10
                 else:
-                    score = -100
+                    sum = -100
             else:
                 # inline move
                 # sumito possibility - higher priority for move
@@ -256,43 +379,48 @@ class AiPlayerKevin(AbstractPlayer):
                     if own_marbles_num >= opp_marbles_num:
                         possible_space_to_push = neighbor(line[own_marbles_num + opp_marbles_num - 1], move[1])
                         if possible_space_to_push is not None:
-                            score += 1000
+                            sum += 200
                         if possible_space_to_push.value in inner_rim:
-                            score += 1000
+                            sum += 200
                         if possible_space_to_push.value in outer_rim:
-                            score += 3000
+                            sum += 300
                         if possible_space_to_push.value is Space.OFF:
-                            score += 10000
+                            sum += 1000
 
             # print(f"score: {score} - {move}")
-            return score
+            return sum
 
-        else:
-            pass
-
-    def _sort_moves(self, moves, tactic="partial"):
-        sorted_moves = []
-        boardside_moves = []
-        inline_moves = []
+    def _sort_moves(self, moves):
+        priority_1_moves = []
+        priority_2_moves = []
+        priority_3_moves = []
+        priority_4_moves = []
+        priority_5_moves = []
+        priority_6_moves = []
 
         for legal_move in moves:
             if isinstance(legal_move[0], tuple):
+                #broadside moves
                 # (<Space.C4: ('C', '4')>, <Space.C5: ('C', '5')>), <Direction.NORTH_WEST: 'north-west'>)
-                sorted_moves.append(legal_move)
-                boardside_moves.append(legal_move)
-        for legal_move in moves:
-            if not isinstance(legal_move[0], tuple):
-                # (<Space.A1: ('A', '1')>, <Direction.NORTH_EAST: 'north-east'>
-                sorted_moves.append(legal_move)
-                inline_moves.append(legal_move)
 
-        if tactic == "partial":
-            # return boardside_moves[0:5]
-            return boardside_moves
-        elif tactic == "inline":
-            return inline_moves
-        else:
-            return sorted_moves
+                # if 3 marbles were moved
+                if len(legal_move[0]) == 3:
+                    priority_4_moves.append(legal_move)
+                # if 2 marbles were moved
+                elif len(legal_move[0]) == 2:
+                    priority_5_moves.append(legal_move)
+                # if 1 marble were moved
+                else:
+                    priority_6_moves.append(legal_move)
+            else:
+                pass
+                #inline moves
+                # (<Space.A1: ('A', '1')>, <Direction.NORTH_EAST: 'north-east'>
+                # if 3 marbles were moved etc
+
+
+        sorted_moves = priority_1_moves + priority_2_moves + priority_3_moves + priority_4_moves + priority_5_moves + priority_6_moves
+        return sorted_moves
 
     def _next_virtual_game(self, game, move):
             vitual_board = deepcopy(game)
@@ -310,4 +438,35 @@ class AiPlayerKevin(AbstractPlayer):
                 return False
             else:
                 return True
+            
+
+if __name__ == "__main__":
+    game_original = Game()
+    # print(type(game_original))
+
+    game_new = AiGame(game_original, Player.BLACK)
+
+    start_time = time.time()
+    games = []
+    
+    for move in game_original.generate_legal_moves():
+        game = deepcopy(game_original)
+        game.move(move[0], move[1])
+        games.append(game)
+    game_original_time = time.time() - start_time
+    print("--- original game took %s seconds ---" % (game_original_time))
+    print(len(games))
+
+    start_time = time.time()
+    moves = game_new.generate_legal_moves()
+    game_new_time = time.time() - start_time
+    print("--- new game took %s seconds ---" % (game_new_time))
+    print(len(moves))
+
+    # print(moves[0].array)
+
+    print("game new is %s times faster than game original" % (game_original_time/game_new_time))
+
+
+
 
