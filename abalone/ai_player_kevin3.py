@@ -254,7 +254,7 @@ class AiPlayerKevin(AbstractPlayer):
                     for direction in directions:
                         dodge_line = line_to_edge(move[0], direction)
                         # next two spaces is opponent in this direction
-                        if len(dodge_line) > 1 and (self._is_opponent_marble(game, dodge_line[1]) and self._is_opponent_marble(game, dodge_line[2])):  #3
+                        if len(dodge_line) > 2 and (self._is_opponent_marble(game, dodge_line[1]) and self._is_opponent_marble(game, dodge_line[2])):  #3
                             score = 8999
                             print(f"Possible Dodge! {move}")
                             break
