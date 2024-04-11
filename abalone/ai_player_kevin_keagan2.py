@@ -18,39 +18,57 @@ class AiGame:
         if (type(game) == Game):
             self.array = deepcopy(game.board)
 
-            row1 = self.array[0]
-            for i in range(len(row1)):
-                self.array[0].append([Marble.BLANK])
-                self.array[0][i+4] = row1[i]
+            for _ in range(4):
+                self.array[0].insert(0, Marble.BLANK)
+            #     self.array[0].append(Marble.BLANK)
+            # self.array[0].push(Marble.BLANK)
 
-            self.array[0][0] = [Marble.BLANK]
-            self.array[0][1] = [Marble.BLANK]
-            self.array[0][2] = [Marble.BLANK]
-            self.array[0][3] = [Marble.BLANK]
+            for _ in range(3):
+                self.array[1].insert(0, Marble.BLANK)
 
-            row2 = self.array[1]
-            for i in range(len(row2)):
-                self.array[1].append([Marble.BLANK])
-                self.array[1][i+3] = row2[i]
+            for _ in range(2):
+                self.array[2].insert(0, Marble.BLANK)
 
-            self.array[1][0] = [Marble.BLANK]
-            self.array[1][1] = [Marble.BLANK]
-            self.array[1][2] = [Marble.BLANK]
+            for _ in range(1):
+                self.array[3].insert(0, Marble.BLANK)
 
-            row3 = self.array[2]
-            for i in range(len(row3)):
-                self.array[2].append([Marble.BLANK])
-                self.array[2][i+2] = row3[i]
+            # row1 = 
+            # for i in range(len(self.array[0])):
+            #     self.array[0].append(Marble.BLANK)
+            #     self.array[0][i+4] = row1[i]
+            #     print(i+4)
+            # print(self.array[0])
 
-            self.array[2][0] = [Marble.BLANK]
-            self.array[2][1] = [Marble.BLANK]
+            # # self.array[0][0] = None
+            # # self.array[0][1] = None
+            # # self.array[0][2] = None
+            # # self.array[0][3] = None
 
-            row4 = self.array[3]
-            for i in range(len(row4)):
-                self.array[3].append([Marble.BLANK])
-                self.array[3][i+1] = row4[i]
+            # row2 = self.array[1]
+            # for i in range(len(row2)):
+            #     self.array[1].append(Marble.BLANK)
+            #     self.array[1][i+3] = row2[i]
 
-            self.array[3][0] = [Marble.BLANK]
+            # self.array[1][0] = None
+            # self.array[1][1] = None
+            # self.array[1][2] = None
+
+            # row3 = self.array[2]
+            # for i in range(len(row3)):
+            #     self.array[2].append(Marble.BLANK)
+            #     self.array[2][i+2] = row3[i]
+
+            # self.array[2][0] = None
+            # self.array[2][1] = None
+
+            # row4 = self.array[3]
+            # for i in range(len(row4)):
+            #     self.array[3].append(Marble.BLANK)
+            #     self.array[3][i+1] = row4[i]
+
+            # self.array[3][0] = None
+
+
         else:
             self.array = game
 
@@ -303,8 +321,6 @@ class AiGame:
                 if self.array[row][col] == self.current_marble:
                     legal_moves += self.generate_marble_moves((row, col))
 
-
-
         return legal_moves
     
     def convert_to_space(self, space):
@@ -341,7 +357,7 @@ class AiGame:
                 direction = Direction.WEST
 
         elif starting_marble[0] < ending_marble[0]:
-            if starting_marble[1] >= ending_marble[1]:
+            if starting_marble[1] > ending_marble[1]:
                 direction = Direction.SOUTH_WEST
             else:
                 direction = Direction.SOUTH_EAST
@@ -397,7 +413,7 @@ class AiPlayerKevin(AbstractPlayer):
     def _game_analytic(self, game):
 
         ai_move = ()
-        max_depth = 3
+        max_depth = 2
 
         # # if len(game.previous_boards) < 20:
         # if self.turns < 10:
@@ -438,11 +454,11 @@ class AiPlayerKevin(AbstractPlayer):
         if maximizing_player:
             max_eval = float('-inf')
             best_board = None
-            for game in game.generate_legal_moves():
-                eval, _ = self.minimax(game, depth - 1, alpha, beta, False)
+            for board in game.generate_legal_moves():
+                eval, _ = self.minimax(board, depth - 1, alpha, beta, False)
                 if eval > max_eval:
                     max_eval = eval
-                    best_board = game
+                    best_board = board
                 alpha = max(alpha, eval)
                 if beta <= alpha:
                     break
@@ -450,11 +466,11 @@ class AiPlayerKevin(AbstractPlayer):
         else:
             min_eval = float('inf')
             best_board = None
-            for game in game.generate_legal_moves():
-                eval, _ = self.minimax(game, depth - 1, alpha, beta, True)
+            for board in game.generate_legal_moves():
+                eval, _ = self.minimax(board, depth - 1, alpha, beta, True)
                 if eval < min_eval:
                     min_eval = eval
-                    best_board = game
+                    best_board = board
                 beta = min(beta, eval)
                 if beta <= alpha:
                     break
@@ -467,10 +483,10 @@ class AiPlayerKevin(AbstractPlayer):
         strategy_number = 1-(1/self.turns)
         
         position_score = {
-            (0, 4): -100, (0, 5): -100, (0, 6): -100, (0, 7): -100, (0, 8): -100,
-            (1, 3): -100, (1, 4): 1, (1, 5): 1, (1, 6): 1, (1, 7): 1, (1, 8): -100,
-            (2, 2): -100, (2, 3): 1, (2, 4): 5, (2, 5): 5, (2, 6): 5, (2, 7): 1, (2, 8): -100,
-            (3, 1): -100, (3, 2): 1, (3, 3): 25, (3, 4): 31, (3, 5): 31, (3, 6): 25, (3, 7): 1, (3, 8): -100,
+            (0, 4): -100, (0,5): -100, (0, 6): -100, (0,7): -100, (0,8): -100,
+            (1, 3): -100, (1, 4): 1, (1, 5): 1, (1, 6): 1, (1,7): 1, (1,8): -100,
+            (2, 2): -100, (2, 3): 1, (2, 4): 5, (2, 5): 5, (2, 6): 5, (2,7): 1, (2, 8): -100,
+            (3, 1): -100, (3, 2): 1, (3, 3): 25, (3, 4): 31, (3, 5): 31, (3,6): 25, (3, 7): 1, (3, 8): -100,
             (4, 0): -100, (4, 1): 1, (4, 2): 25, (4, 3): 31, (4, 4): 31, (4, 5): 31, (4, 6): 25, (4, 7): 1, (4, 8): -100,
             (5, 0): -100, (5, 1): 1, (5, 2): 25, (5, 3): 31, (5, 4): 31, (5, 5): 25, (5, 6): 1, (5, 7): -100,
             (6, 0): -100, (6, 1): 1, (6, 2): 5, (6, 3): 5, (6, 4): 5, (6, 5): 1, (6, 6): -100,
