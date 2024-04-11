@@ -16,7 +16,41 @@ class AiGame:
     def __init__(self, game: Union[Game, List], current_player: Player, kill: bool=False, value=0) -> None:
         # print(type(game))
         if (type(game) == Game):
-            self.array = game.board
+            self.array = deepcopy(game.board)
+
+            row1 = self.array[0]
+            for i in range(len(row1)):
+                self.array[0].append([Marble.BLANK])
+                self.array[0][i+4] = row1[i]
+
+            self.array[0][0] = [Marble.BLANK]
+            self.array[0][1] = [Marble.BLANK]
+            self.array[0][2] = [Marble.BLANK]
+            self.array[0][3] = [Marble.BLANK]
+
+            row2 = self.array[1]
+            for i in range(len(row2)):
+                self.array[1].append([Marble.BLANK])
+                self.array[1][i+3] = row2[i]
+
+            self.array[1][0] = [Marble.BLANK]
+            self.array[1][1] = [Marble.BLANK]
+            self.array[1][2] = [Marble.BLANK]
+
+            row3 = self.array[2]
+            for i in range(len(row3)):
+                self.array[2].append([Marble.BLANK])
+                self.array[2][i+2] = row3[i]
+
+            self.array[2][0] = [Marble.BLANK]
+            self.array[2][1] = [Marble.BLANK]
+
+            row4 = self.array[3]
+            for i in range(len(row4)):
+                self.array[3].append([Marble.BLANK])
+                self.array[3][i+1] = row4[i]
+
+            self.array[3][0] = [Marble.BLANK]
         else:
             self.array = game
 
@@ -26,7 +60,7 @@ class AiGame:
 
         self.current_player = current_player
 
-        self.current_marble = self.get_marble(current_player)
+        self.current_marble = self.get_marble(self.current_player)
         self.opponent_marble = self.get_marble(self.get_other_player())
 
         self.opponent = self.get_other_player()
@@ -35,17 +69,16 @@ class AiGame:
 
         # array looks like this
         # [
-        #     [ M, M, M, M, M ],
-        #     [ M, M, M, M, M, M ],
-        #     [ M, M, M, M, M, M, M ],
-        #     [ M, M, M, M, M, M, M, M ],
+        #                 [ M, M, M, M, M ],
+        #              [ M, M, M, M, M, M ],
+        #           [ M, M, M, M, M, M, M ],
+        #        [ M, M, M, M, M, M, M, M ],
         #     [ M, M, M, M, M, M, M, M, M ],
         #     [ M, M, M, M, M, M, M, M ],
         #     [ M, M, M, M, M, M, M ],
         #     [ M, M, M, M, M, M ],
         #     [ M, M, M, M, M ]
         # ]
-        self.current_player = current_player
 
     def get_score(self):
         black_score = 0
@@ -73,34 +106,34 @@ class AiGame:
         
     def get_position_score(self, location):
         farthest_ring = (
-            (0,0), (0,1), (0,2), (0,3), (0,4),
-            (1,0), (1,4),
-            (2,0), (2,5),
-            (3,0), (3,6),
-            (4,0), (4,7),
-            (5,0), (5,6),
-            (6,0), (6,5),
-            (7,0), (7,4),
+            (0,4), (0,5), (0,6), (0,7), (0,8),
+            (1,3), (1,8),
+            (2,2), (2,8),
+            (3,1), (3,8),
+            (4,0), (4,8),
+            (5,0), (5,7),
+            (6,0), (6,6),
+            (7,0), (7,5),
             (8,0), (8,1), (8,2), (8,3), (8,4))
         
         second_farthest_ring = (
-            (1,1), (1,2),(1,3), (1,4),
-            (2,1), (2,5),
-            (3,1), (3,6),
+            (1,4), (1,5),(1,6), (1,7),
+            (2,3), (2,7),
+            (3,2), (3,7),
             (4,1), (4,7),
             (5,1), (5,6),
             (6,1), (6,5),
             (7,1), (7,2), (7,3), (7,4))
         
         third_farthest_ring = (
-            (2,2), (2,3), (2,4),
-            (3,2), (3,5),
+            (2,4), (2,5), (2,6),
+            (3,3), (3,6),
             (4,2), (4,6),
             (5,2), (5,5),
             (6,2), (6,3), (6,4))
         
         fourth_farthest_ring = (
-            (3,3), (3,4),
+            (3,4), (3,5),
             (4,3), (4,5),
             (5,3), (5,4))
         
@@ -118,22 +151,22 @@ class AiGame:
         row, col = space
 
         spaces = (
-            (0,0), (0,1), (0,2), (0,3), (0,4),
-            (1,0), (1,1), (1,2), (1,3), (1,4), (1,5),
-            (2,0), (2,1), (2,2), (2,3), (2,4), (2,5), (2,6),
-            (3,0), (3,1), (3,2), (3,3), (3,4), (3,5), (3,6), (3,7),
+            (0,4), (0,5), (0,6), (0,7), (0,8),
+            (1,3), (1,4), (1,5), (1,6), (1,7), (1,8),
+            (2,2), (2,3), (2,4), (2,5), (2,6), (2,7), (2,8),
+            (3,1), (3,2), (3,3), (3,4), (3,5), (3,6), (3,7), (3,8),
             (4,0), (4,1), (4,2), (4,3), (4,4), (4,5), (4,6), (4,7), (4,8),
             (5,0), (5,1), (5,2), (5,3), (5,4), (5,5), (5,6), (5,7),
             (6,0), (6,1), (6,2), (6,3), (6,4), (6,5), (6,6),
             (7,0), (7,1), (7,2), (7,3), (7,4), (7,5),
             (8,0), (8,1), (8,2), (8,3), (8,4))
 
-        if row < 4: 
-            modifications = [(0, -1), (-1, -1), (-1, 0), (0, 1), (1, 1), (1, 0)]
-        elif row == 4:
-            modifications = [(0, -1), (-1, -1), (-1, 0), (0, 1), (1, 0), (1, -1)]
-        else:
-            modifications = [(0, -1), (-1, 0), (-1, +1), (0, 1), (1, 0), (1, -1)]
+        # if row < 4: 
+        #     modifications = [(0, -1), (-1, -1), (-1, 0), (0, 1), (1, 1), (1, 0)]
+        # elif row == 4:
+        #     modifications = [(0, -1), (-1, -1), (-1, 0), (0, 1), (1, 0), (1, -1)]
+        # else:
+        modifications = [(0, -1), (-1, 0), (-1, +1), (0, 1), (1, 0), (1, -1)]
 
         for mod in modifications:
             #check if the next space is on the board (M*)
@@ -158,7 +191,6 @@ class AiGame:
                     if (row+mod[0]*2, col+mod[1]*2) in spaces:
                 #         #check if the next marble is empty (MM_)
                         if self.array[row+mod[0]*2][col+mod[1]*2] == Marble.BLANK:
-                            # pass
                             array = deepcopy(self.array)
                             array[row+mod[0]*2][col+mod[1]*2] = self.current_marble
                             array[row+mod[0]][col+mod[1]] = self.current_marble
@@ -168,17 +200,19 @@ class AiGame:
                         #check if the next marble contains an enemy marble (MME)
                         elif self.array[row+mod[0]*2][col+mod[1]*2] == self.opponent:
                             self.value += 20
-                            #check if we can push the enemy marble to another spot on the board (MME_)
-                            if (row+mod[0]*3, col+mod[1]*3) in spaces and self.array[row+mod[0]*3][col+mod[1]*3] == Marble.BLANK:
-                                array = deepcopy(self.array)
-                                array[row+mod[0]*3][col+mod[1]*3] = self.opponent
-                                array[row+mod[0]*2][col+mod[1]*2] = self.current_marble
-                                array[row+mod[0]][col+mod[1]] = self.current_marble
-                                array[row][col] = Marble.BLANK
-                                # print("test3")
-                                self.value += self.get_position_score(Tuple(row+mod[0]*3,col+mod[1]*3))
+                            #check if a spot after the enemy exists (MME*)
+                            if (row+mod[0]*3, col+mod[1]*3) in spaces:
+                                #check if it is empty (MME_)
+                                if self.array[row+mod[0]*3][col+mod[1]*3] == Marble.BLANK:
+                                    array = deepcopy(self.array)
+                                    array[row+mod[0]*3][col+mod[1]*3] = self.opponent
+                                    array[row+mod[0]*2][col+mod[1]*2] = self.current_marble
+                                    array[row+mod[0]][col+mod[1]] = self.current_marble
+                                    array[row][col] = Marble.BLANK
+                                    # print("test3")
+                                    self.value += self.get_position_score(Tuple(row+mod[0]*3,col+mod[1]*3))
 
-                                legal_moves.append(AiGame(array, self.opponent, value=self.value))
+                                    legal_moves.append(AiGame(array, self.opponent, value=self.value))
                             #check if we can push the enemy marble off the board (MMEX)
                             elif (row+mod[0]*3, col+mod[1]*3) not in spaces:
                                 array = deepcopy(self.array)
@@ -220,18 +254,21 @@ class AiGame:
                                             self.value += self.get_position_score(Tuple(row+mod[0]*4,col+mod[1]*4))
 
                                             legal_moves.append(AiGame(array, self.opponent, value=self.value))
-                                        #check if it is another enemy marble and the marble after that is empty (MMMEE_)
+                                        #check if it is another enemy marble (MMMEE)
                                         elif self.array[row+mod[0]*4][col+mod[1]*4] == self.opponent:
-                                            if (row+mod[0]*5, col+mod[1]*5) in spaces and self.array[row+mod[0]*5][col+mod[1]*5] == Marble.BLANK:
-                                                array = deepcopy(self.array)
-                                                array[row+mod[0]*5][col+mod[1]*5] = self.opponent
-                                                array[row+mod[0]*4][col+mod[1]*4] = self.opponent
-                                                array[row+mod[0]*3][col+mod[1]*3] = self.current_marble
-                                                array[row+mod[0]*2][col+mod[1]*2] = self.current_marble
-                                                array[row+mod[0]][col+mod[1]] = self.current_marble
-                                                array[row][col] = Marble.BLANK
-                                                # print("test7")
-                                                legal_moves.append(AiGame(array, self.opponent))
+                                            #check if the marble after 4 friendly's and 2 enemy exists (MMMEE*)
+                                            if (row+mod[0]*5, col+mod[1]*5) in spaces: 
+                                                #check if it is empty (MMMEE_)
+                                                if self.array[row+mod[0]*5][col+mod[1]*5] == Marble.BLANK:
+                                                    array = deepcopy(self.array)
+                                                    array[row+mod[0]*5][col+mod[1]*5] = self.opponent
+                                                    array[row+mod[0]*4][col+mod[1]*4] = self.opponent
+                                                    array[row+mod[0]*3][col+mod[1]*3] = self.current_marble
+                                                    array[row+mod[0]*2][col+mod[1]*2] = self.current_marble
+                                                    array[row+mod[0]][col+mod[1]] = self.current_marble
+                                                    array[row][col] = Marble.BLANK
+                                                    # print("test7")
+                                                    legal_moves.append(AiGame(array, self.opponent))
                                             #check if we can push the enemy marble off the board (MMMEEX)
                                             elif (row+mod[0]*5, col+mod[1]*5) not in spaces:
                                                 array = deepcopy(self.array)
@@ -243,7 +280,7 @@ class AiGame:
                                                 # print("test8")
                                                 legal_moves.append(AiGame(array, self.opponent, True))
                                     #check if we can push the enemy marble off the board (MMMEX)
-                                    else:
+                                    elif (row+mod[0]*4, col+mod[1]*4) not in spaces:
                                         array = deepcopy(self.array)
                                         array[row+mod[0]*3][col+mod[1]*3] = self.current_marble
                                         array[row+mod[0]*2][col+mod[1]*2] = self.current_marble
@@ -264,13 +301,7 @@ class AiGame:
             for col in range(len(self.array[row])):
                 # print(f"row: {row}, col: {col}")
                 if self.array[row][col] == self.current_marble:
-                    # print("current marble is: ", self.current_marble)
-                    # print("position is", row, col)
                     legal_moves += self.generate_marble_moves((row, col))
-                    # self.generate_two_marble_moves_inline((row, col)) +
-                    # self.generate_two_marble_moves_broadside((row, col)) +
-                    # self.generate_three_marble_moves_inline((row, col)) +
-                    # self.generate_three_marble_moves_broadside((row, col)))
 
 
 
@@ -278,10 +309,10 @@ class AiGame:
     
     def convert_to_space(self, space):
         mapping = {
-            (0,0): Space.I5, (0,1): Space.I6, (0,2): Space.I7, (0,3): Space.I8, (0,4): Space.I9,
-            (1,0): Space.H4, (1,1): Space.H5, (1,2): Space.H6, (1,3): Space.H7, (1,4): Space.H8, (1,5): Space.H9,
-            (2,0): Space.G3, (2,1): Space.G4, (2,2): Space.G5, (2,3): Space.G6, (2,4): Space.G7, (2,5): Space.G8, (2,6): Space.G9,
-            (3,0): Space.F2, (3,1): Space.F3, (3,2): Space.F4, (3,3): Space.F5, (3,4): Space.F6, (3,5): Space.F7, (3,6): Space.F8, (3,7): Space.F9,
+            (0,4): Space.I5, (0,5): Space.I6, (0,6): Space.I7, (0,7): Space.I8, (0,8): Space.I9,
+            (1,3): Space.H4, (1,4): Space.H5, (1,5): Space.H6, (1,6): Space.H7, (1,7): Space.H8, (1,8): Space.H9,
+            (2,2): Space.G3, (2,3): Space.G4, (2,4): Space.G5, (2,5): Space.G6, (2,6): Space.G7, (2,7): Space.G8, (2,8): Space.G9,
+            (3,1): Space.F2, (3,2): Space.F3, (3,3): Space.F4, (3,4): Space.F5, (3,5): Space.F6, (3,6): Space.F7, (3,7): Space.F8, (3,8): Space.F9,
             (4,0): Space.E1, (4,1): Space.E2, (4,2): Space.E3, (4,3): Space.E4, (4,4): Space.E5, (4,5): Space.E6, (4,6): Space.E7, (4,7): Space.E8, (4,8): Space.E9,
             (5,0): Space.D1, (5,1): Space.D2, (5,2): Space.D3, (5,3): Space.D4, (5,4): Space.D5, (5,5): Space.D6, (5,6): Space.D7, (5,7): Space.D8,
             (6,0): Space.C1, (6,1): Space.C2, (6,2): Space.C3, (6,3): Space.C4, (6,4): Space.C5, (6,5): Space.C6, (6,6): Space.C7,
@@ -310,34 +341,24 @@ class AiGame:
                 direction = Direction.WEST
 
         elif starting_marble[0] < ending_marble[0]:
-            if starting_marble[0] < 4:
-                print("yes")
-                if starting_marble[1] <= ending_marble[1]:
-                    direction = Direction.SOUTH_WEST
-                else:
-                    direction = Direction.SOUTH_EAST
+            if starting_marble[1] >= ending_marble[1]:
+                direction = Direction.SOUTH_WEST
             else:
-                print("no")
-                if starting_marble[1] <= ending_marble[1]:
-                    direction = Direction.SOUTH_EAST
-                else:
-                    direction = Direction.SOUTH_WEST
-        
+                direction = Direction.SOUTH_EAST
+                   
         elif starting_marble[0] > ending_marble[0]:
             print(starting_marble[0], starting_marble[1])
             print(ending_marble[0], ending_marble[1])
-            if starting_marble[0] < 4:
-                print("yes")
-                if starting_marble[1] < ending_marble[1]:
-                    direction = Direction.NORTH_WEST
-                else:
-                    direction = Direction.NORTH_EAST
+            if starting_marble[1] >= ending_marble[1]:
+                direction = Direction.NORTH_WEST
             else:
-                print("no")
-                if starting_marble[1] < ending_marble[1]:
-                    direction = Direction.NORTH_EAST
-                else:
-                    direction = Direction.NORTH_WEST
+                direction = Direction.NORTH_EAST
+            # else:
+            #     print("no")
+            #     if starting_marble[1] < ending_marble[1]:
+            #         direction = Direction.NORTH_EAST
+            #     else:
+            #         direction = Direction.NORTH_WEST
 
 
         starting_marble = self.convert_to_space(starting_marble)
@@ -368,7 +389,7 @@ class AiPlayerKevin(AbstractPlayer):
 
         self.turns += 1
 
-        print(self._game_analytic(game))
+        # print(self._game_analytic(game))
         # sys.exit()
         return self._game_analytic(game)
 
@@ -376,7 +397,7 @@ class AiPlayerKevin(AbstractPlayer):
     def _game_analytic(self, game):
 
         ai_move = ()
-        max_depth = 2
+        max_depth = 3
 
         # # if len(game.previous_boards) < 20:
         # if self.turns < 10:
@@ -391,7 +412,7 @@ class AiPlayerKevin(AbstractPlayer):
 
 
         # 1-(1/self.turns)
-        ai_move = self.minimax(game, max_depth, alpha=float('-inf'), beta=float("inf"), maximizing_player=game.current_player != Player.WHITE)[1]
+        ai_move = self.minimax(game, max_depth, alpha=float('-inf'), beta=float("inf"), maximizing_player=game.current_player is Player.WHITE)[1]
 
         return ai_move.create_formatted_move(game)
 
@@ -446,10 +467,10 @@ class AiPlayerKevin(AbstractPlayer):
         strategy_number = 1-(1/self.turns)
         
         position_score = {
-            (0, 0): -100, (0, 1): -100, (0, 2): -100, (0, 3): -100, (0, 4): -100,
-            (1, 0): -100, (1, 1): 1, (1, 2): 1, (1, 3): 1, (1, 4): 1, (1, 5): -100,
-            (2, 0): -100, (2, 1): 1, (2, 2): 5, (2, 3): 5, (2, 4): 5, (2, 5): 1, (2, 6): -100,
-            (3, 0): -100, (3, 1): 1, (3, 2): 25, (3, 3): 31, (3, 4): 31, (3, 5): 25, (3, 6): 1, (3, 7): -100,
+            (0, 4): -100, (0, 5): -100, (0, 6): -100, (0, 7): -100, (0, 8): -100,
+            (1, 3): -100, (1, 4): 1, (1, 5): 1, (1, 6): 1, (1, 7): 1, (1, 8): -100,
+            (2, 2): -100, (2, 3): 1, (2, 4): 5, (2, 5): 5, (2, 6): 5, (2, 7): 1, (2, 8): -100,
+            (3, 1): -100, (3, 2): 1, (3, 3): 25, (3, 4): 31, (3, 5): 31, (3, 6): 25, (3, 7): 1, (3, 8): -100,
             (4, 0): -100, (4, 1): 1, (4, 2): 25, (4, 3): 31, (4, 4): 31, (4, 5): 31, (4, 6): 25, (4, 7): 1, (4, 8): -100,
             (5, 0): -100, (5, 1): 1, (5, 2): 25, (5, 3): 31, (5, 4): 31, (5, 5): 25, (5, 6): 1, (5, 7): -100,
             (6, 0): -100, (6, 1): 1, (6, 2): 5, (6, 3): 5, (6, 4): 5, (6, 5): 1, (6, 6): -100,
@@ -465,7 +486,7 @@ class AiPlayerKevin(AbstractPlayer):
             for col in range(len(game.array[row])):
                 if game.array[row][col] == game.current_marble:
                     # print("position score",position_score[(row, col)])
-                    sum += position_score[(row, col)] #* strategy_number
+                    sum += position_score[(row, col)] * strategy_number
 
 
         if (game.kill):
