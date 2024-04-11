@@ -28,6 +28,8 @@ import inquirer
 from ai_player_brian import AiPlayerBrian
 from ai_player_jeffrey import AiPlayerJeffrey
 from ai_player_keagan import AiPlayerKeagan
+from ai_player_kevin3 import AiPlayerKevin as AiPlayerKevin2
+from ai_player_kevin_keagan2 import AiPlayerKevin as AiPlayerKevinKeagan2
 from ai_player_kevin import AiPlayerKevin
 from ai_player_template import AiPlayerTemplate
 from abstract_player import AbstractPlayer
@@ -333,9 +335,10 @@ if __name__ == '__main__':  # pragma: no cover
     import importlib
     import sys
 
-    if len(sys.argv) == 2:
-        list(run_game(AiPlayerKevin(), HumanPlayer(), initial_position=InitialPosition.DEFAULT, move_limit=99, time_limit=(99,99), player=Player.BLACK))
-        sys.exit(0)
+    # if len(sys.argv) == 2:
+    # #     # list(run_game(AiPlayerKevin2(), AiPlayerKevinKeagan2(), initial_position=InitialPosition.DEFAULT, move_limit=200, time_limit=(99,99), player=Player.BLACK))
+    #     list(run_game(AiPlayerKevinKeagan2(), AiPlayerKevin2(), initial_position=InitialPosition.GERMAN_DAISY, move_limit=99, time_limit=(99,99), player=Player.BLACK))
+    #     sys.exit(0)
 
     game_mode = inquirer.prompt([
         inquirer.List('game_mode',
@@ -346,10 +349,11 @@ if __name__ == '__main__':  # pragma: no cover
 
     player_list = {'Player':HumanPlayer(),
                    'Computer(Random)':RandomPlayer(),
+                   'Team 3 AI':AiPlayerKevinKeagan2(),
                    'AI Jeffrey':AiPlayerJeffrey(),
                    'AI Keagan':AiPlayerKeagan(),
                    'AI Brian': AiPlayerBrian(),
-                   'AI Kevin': AiPlayerKevin(),
+                   'AI Kevin': AiPlayerKevin2(),
                    'AI player template':AiPlayerTemplate()}
 
     player= Player.BLACK

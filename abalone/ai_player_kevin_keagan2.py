@@ -77,11 +77,10 @@ class AiGame:
         self.value = value
 
         self.current_player = current_player
+        self.opponent = self.get_other_player()
 
         self.current_marble = self.get_marble(self.current_player)
-        self.opponent_marble = self.get_marble(self.get_other_player())
-
-        self.opponent = self.get_other_player()
+        self.opponent_marble = self.get_marble(self.opponent)
 
         self.score = self.get_score()
 
@@ -163,6 +162,8 @@ class AiGame:
             return 50
         elif location in fourth_farthest_ring:
             return 20
+        else:
+            return 0
 
     def generate_marble_moves(self, space: Tuple):
         legal_moves = []
@@ -216,7 +217,7 @@ class AiGame:
                             # print("test2")
                             legal_moves.append(AiGame(array, self.opponent))
                         #check if the next marble contains an enemy marble (MME)
-                        elif self.array[row+mod[0]*2][col+mod[1]*2] == self.opponent:
+                        elif self.array[row+mod[0]*2][col+mod[1]*2] == self.opponent_marble:
                             self.value += 20
                             #check if a spot after the enemy exists (MME*)
                             if (row+mod[0]*3, col+mod[1]*3) in spaces:
@@ -228,7 +229,7 @@ class AiGame:
                                     array[row+mod[0]][col+mod[1]] = self.current_marble
                                     array[row][col] = Marble.BLANK
                                     # print("test3")
-                                    self.value += self.get_position_score(Tuple(row+mod[0]*3,col+mod[1]*3))
+                                    self.value += self.get_position_score((row+mod[0]*3,col+mod[1]*3))
 
                                     legal_moves.append(AiGame(array, self.opponent, value=self.value))
                             #check if we can push the enemy marble off the board (MMEX)
@@ -255,7 +256,9 @@ class AiGame:
                                     # print("test5")
                                     legal_moves.append(AiGame(array, self.opponent))
                                 #check if the next marble contains an enemy marble (MMME)
-                                elif self.array[row+mod[0]*3][col+mod[1]*3] == self.opponent:
+                                elif self.array[row+mod[0]*3][col+mod[1]*3] == self.opponent_marble:
+                                    # print("test6")
+                                    self.value += 20
                                     #check if the marble after 3 friendly's and an enemy exists (MMME*)
                                     if (row+mod[0]*4, col+mod[1]*4) in spaces:
                                         #check if it is empty (MMME_)
@@ -269,11 +272,11 @@ class AiGame:
                                             array[row][col] = Marble.BLANK
                                             # print("test6")
 
-                                            self.value += self.get_position_score(Tuple(row+mod[0]*4,col+mod[1]*4))
+                                            self.value += self.get_position_score((row+mod[0]*4,col+mod[1]*4))
 
                                             legal_moves.append(AiGame(array, self.opponent, value=self.value))
                                         #check if it is another enemy marble (MMMEE)
-                                        elif self.array[row+mod[0]*4][col+mod[1]*4] == self.opponent:
+                                        elif self.array[row+mod[0]*4][col+mod[1]*4] == self.opponent_marble:
                                             #check if the marble after 4 friendly's and 2 enemy exists (MMMEE*)
                                             if (row+mod[0]*5, col+mod[1]*5) in spaces: 
                                                 #check if it is empty (MMMEE_)
@@ -285,6 +288,8 @@ class AiGame:
                                                     array[row+mod[0]*2][col+mod[1]*2] = self.current_marble
                                                     array[row+mod[0]][col+mod[1]] = self.current_marble
                                                     array[row][col] = Marble.BLANK
+
+                                                    self.value += self.get_position_score((row+mod[0]*5,col+mod[1]*5))
                                                     # print("test7")
                                                     legal_moves.append(AiGame(array, self.opponent))
                                             #check if we can push the enemy marble off the board (MMMEEX)
@@ -307,7 +312,6 @@ class AiGame:
                                         # print("test8")
                                         legal_moves.append(AiGame(array, self.opponent, True))
 
-        # print(legal_moves)
         return legal_moves
 
                 
@@ -404,6 +408,10 @@ class AiPlayerKevin(AbstractPlayer):
         game = AiGame(game, game.turn)
 
         self.turns += 1
+        # print(self.turns)
+
+        if self.turns == 1 and game.current_player == Player.BLACK:
+            return choice(game.generate_legal_moves()).create_formatted_move(game)
 
         # print(self._game_analytic(game))
         # sys.exit()
@@ -413,7 +421,7 @@ class AiPlayerKevin(AbstractPlayer):
     def _game_analytic(self, game):
 
         ai_move = ()
-        max_depth = 2
+        max_depth = 3
 
         # # if len(game.previous_boards) < 20:
         # if self.turns < 10:
@@ -428,7 +436,7 @@ class AiPlayerKevin(AbstractPlayer):
 
 
         # 1-(1/self.turns)
-        ai_move = self.minimax(game, max_depth, alpha=float('-inf'), beta=float("inf"), maximizing_player=game.current_player is Player.WHITE)[1]
+        ai_move = self.minimax(game, max_depth, alpha=float('-inf'), beta=float("inf"), maximizing_player=False)[1]
 
         return ai_move.create_formatted_move(game)
 
@@ -454,24 +462,24 @@ class AiPlayerKevin(AbstractPlayer):
         if maximizing_player:
             max_eval = float('-inf')
             best_board = None
-            for board in game.generate_legal_moves():
-                eval, _ = self.minimax(board, depth - 1, alpha, beta, False)
-                if eval > max_eval:
-                    max_eval = eval
+            for board in self._sort_moves(game.generate_legal_moves()):
+                evaluation, _ = self.minimax(board, depth - 1, alpha, beta, False)
+                if evaluation > max_eval:
+                    max_eval = evaluation
                     best_board = board
-                alpha = max(alpha, eval)
+                alpha = max(alpha, evaluation)
                 if beta <= alpha:
                     break
             return max_eval, best_board
         else:
             min_eval = float('inf')
             best_board = None
-            for board in game.generate_legal_moves():
-                eval, _ = self.minimax(board, depth - 1, alpha, beta, True)
-                if eval < min_eval:
-                    min_eval = eval
+            for board in self._sort_moves(game.generate_legal_moves()):
+                evaluation, _ = self.minimax(board, depth - 1, alpha, beta, True)
+                if evaluation < min_eval:
+                    min_eval = evaluation
                     best_board = board
-                beta = min(beta, eval)
+                beta = min(beta, evaluation)
                 if beta <= alpha:
                     break
             return min_eval, best_board
@@ -483,32 +491,47 @@ class AiPlayerKevin(AbstractPlayer):
         strategy_number = 1-(1/self.turns)
         
         position_score = {
-            (0, 4): -100, (0,5): -100, (0, 6): -100, (0,7): -100, (0,8): -100,
+            (0, 4): -500, (0,5): -100, (0, 6): -100, (0,7): -100, (0,8): -500,
             (1, 3): -100, (1, 4): 1, (1, 5): 1, (1, 6): 1, (1,7): 1, (1,8): -100,
             (2, 2): -100, (2, 3): 1, (2, 4): 5, (2, 5): 5, (2, 6): 5, (2,7): 1, (2, 8): -100,
             (3, 1): -100, (3, 2): 1, (3, 3): 25, (3, 4): 31, (3, 5): 31, (3,6): 25, (3, 7): 1, (3, 8): -100,
-            (4, 0): -100, (4, 1): 1, (4, 2): 25, (4, 3): 31, (4, 4): 31, (4, 5): 31, (4, 6): 25, (4, 7): 1, (4, 8): -100,
+            (4, 0): -500, (4, 1): 1, (4, 2): 25, (4, 3): 31, (4, 4): 31, (4, 5): 31, (4, 6): 25, (4, 7): 1, (4, 8): -500,
             (5, 0): -100, (5, 1): 1, (5, 2): 25, (5, 3): 31, (5, 4): 31, (5, 5): 25, (5, 6): 1, (5, 7): -100,
             (6, 0): -100, (6, 1): 1, (6, 2): 5, (6, 3): 5, (6, 4): 5, (6, 5): 1, (6, 6): -100,
             (7, 0): -100, (7, 1): 1, (7, 2): 1, (7, 3): 1, (7, 4): 1, (7, 5): -100,
-            (8, 0): -100, (8, 1): -100, (8, 2): -100, (8, 3): -100, (8, 4): -100
+            (8, 0): -500, (8, 1): -100, (8, 2): -100, (8, 3): -100, (8, 4): -500
         }
 
+        corners = [(0, 4), (0, 8), (4, 0), (4, 8), (8, 0), (8, 4)]
 
-        # boardside move, score are the sum of all marbles. For inline move, there is only one tuple
         sum = 0
 
         for row in range(len(game.array)):
             for col in range(len(game.array[row])):
                 if game.array[row][col] == game.current_marble:
                     # print("position score",position_score[(row, col)])
-                    sum += position_score[(row, col)] * strategy_number
+                    sum += position_score[(row, col)] * (1 - strategy_number)
+                elif game.array[row][col] == game.opponent_marble:
+                    sum -= position_score[(row, col)] * (1 - strategy_number)
+
+                    if (row, col) in corners:
+                        sum += 1500 * strategy_number
 
 
-        if (game.kill):
-            # there is a score difference meaning an opponent marble is killed by this move
-            sum += 350
-            sys.exit()
+        # sum += game.get_score()[0] * 1000
+        
+
+        if game.current_player == Player.BLACK:
+            sum += game.get_score()[0] * 1000 * strategy_number
+            sum -= game.get_score()[1] * 1000 * strategy_number
+        else:
+            sum += game.get_score()[1] * 1000 * strategy_number
+            sum -= game.get_score()[0] * 1000 * strategy_number
+
+        # if (game.kill):
+        #     # there is a score difference meaning an opponent marble is killed by this move
+        #     sum += 350000
+            # sys.exit()
             # return score
 
         # 2. Second priority, arrange score according to how close the opponent marble to being kill
@@ -519,53 +542,32 @@ class AiPlayerKevin(AbstractPlayer):
         # if require four round, it is just random pushing marbles around, no addition score
 
         # print("game value", game.value)
-        sum += game.value
+
+        if game.value > 0:
+            # print(game.value)
+            sum += game.value * 10 * strategy_number
 
         # print("total game sum",sum)
         return sum
 
-    def _sort_moves(self, moves, game, tactic="partial"):
-        broadside_moves = []
-        inline_multiple_marbles_moves = []
-        single_marble_moves = []
+    def _sort_moves(self, moves: List):
 
-        # for legal_move in moves:
-        #     if isinstance(legal_move[0], tuple):
-        #         # (<Space.C4: ('C', '4')>, <Space.C5: ('C', '5')>), <Direction.NORTH_WEST: 'north-west'>)
-        #         # boardside move only
-        #         broadside_moves.append(legal_move)
+        biggest_impact = []
 
-        #     else:
-        #         single_marble_moves.append(legal_move)
-        return moves
+        big_impact = []
 
-        # for legal_move in moves:
-        #     if not isinstance(legal_move[0], tuple):
-                # (<Space.A1: ('A', '1')>, <Direction.NORTH_EAST: 'north-east'>
-                # sorted_moves.append(legal_move)
-                # inline_moves.append(legal_move)
+        small_impact = []
 
-        if tactic == "partial":
-            # return boardside_moves[0:5]
-            return broadside_moves + single_marble_moves
-        elif tactic == "inline":
-            return inline_multiple_marbles_moves + single_marble_moves
-        else:
-            return inline_multiple_marbles_moves + broadside_moves + single_marble_moves
+        for move in moves:
+            if move.kill:
+                biggest_impact.append(move)
+            
+            elif move.value > 10:
+                big_impact.append(move)
 
-    # def _next_virtual_game(self, game, move):
-    #         vitual_board = deepcopy(game)
-    #         vitual_board.move(move[0], move[1])
-    #         return vitual_board
-
-    def _is_opponent_marble(self, game, space):
-        if game.turn == Player.BLACK:
-            if game.get_marble(space) == Marble.BLACK or game.get_marble(space) == Marble.BLANK:
-                return False
             else:
-                return True
-        else:
-            if game.get_marble(space) == Marble.WHITE or game.get_marble(space) == Marble.BLANK:
-                return False
-            else:
-                return True
+                small_impact.append(move)
+        
+
+
+        return biggest_impact + big_impact + small_impact
