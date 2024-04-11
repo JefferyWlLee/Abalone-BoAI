@@ -38,7 +38,7 @@ class AiPlayerKevin(AbstractPlayer):
         max_depth = 1
 
         # if len(game.previous_boards) < 20:
-        if len(game.previous_boards) < 20:
+        if len(game.previous_boards) < 5:
             # ai_move = self._aplpha_beta_search(game, max_depth, 1, "all")
             ai_move = self._aplpha_beta_search(game, max_depth, 1, "inline")
             # print("strategy 1")
@@ -82,9 +82,9 @@ class AiPlayerKevin(AbstractPlayer):
         best_move = move_set['move']
         current_score = move_set['score']
 
-        for a in tmp_score_move_list:
-            print(a)
-        print(f"best score: {current_score} - best move: {best_move}")
+        # for a in tmp_score_move_list:
+            # print(a)
+        # print(f"best score: {current_score} - best move: {best_move}")
         return best_move
 
     def _max_value(self, vgame, move, max_depth, strategy, tactic, alpha, beta):
@@ -368,4 +368,3 @@ class AiPlayerKevin(AbstractPlayer):
                 return False
             else:
                 return True
-
